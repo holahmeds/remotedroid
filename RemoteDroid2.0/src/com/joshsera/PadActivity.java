@@ -1075,7 +1075,6 @@ public class PadActivity extends Activity {
 	private void initLeftButton() {
 		FrameLayout fl = (FrameLayout) this.findViewById(R.id.flLeftButton);
 		android.view.ViewGroup.LayoutParams lp = fl.getLayoutParams();
-		if(!Settings.hideMouseButtons) lp.height=0;
 		fl.setLayoutParams(lp);
 		// listener
 		fl.setOnTouchListener(new View.OnTouchListener() {
@@ -1089,7 +1088,6 @@ public class PadActivity extends Activity {
 	private void initRightButton() {
 		FrameLayout iv = (FrameLayout) this.findViewById(R.id.flRightButton);
 		android.view.ViewGroup.LayoutParams lp = iv.getLayoutParams();
-		if(!Settings.hideMouseButtons) lp.height=0;
 		iv.setLayoutParams(lp);
 		// listener
 		iv.setOnTouchListener(new View.OnTouchListener() {
@@ -1103,7 +1101,6 @@ public class PadActivity extends Activity {
 	private void initMidButton() {
 		FrameLayout fl = (FrameLayout) this.findViewById(R.id.flKeyboardButton);
 		android.view.ViewGroup.LayoutParams lp = fl.getLayoutParams();
-		if(!Settings.hideMouseButtons) lp.height=0;
 		fl.setLayoutParams(lp);
 		// listener
 		fl.setOnTouchListener(new View.OnTouchListener() {
@@ -1323,30 +1320,14 @@ public class PadActivity extends Activity {
 				long elapsed = now - this.lastTap;
 				if (elapsed <= Settings.clickTime) {
 					if (this.tapState == TAP_NONE) {
-						// send the mouse down event
-						if(scrollTag && Settings.twoTouchRightClick && scrollCount <= rightClickAllowance) //make sure scrolling has not happened
-						{
-							this.lastTap = now;
-							//
-							this.tapTimer = new Timer();
-							this.tapTimer.scheduleAtFixedRate(new TimerTask() {
-								public void run() {
-									firstRightTapUp();
-								}
-							}, 0, Settings.clickTime);
-						}
-						else
-						{
-							this.lastTap = now;
-							//
-							this.tapTimer = new Timer();
-							this.tapTimer.scheduleAtFixedRate(new TimerTask() {
-								public void run() {
-									firstTapUp();
-								}
-							}, 0, Settings.clickTime);
-						}
-
+						this.lastTap = now;
+						//
+						this.tapTimer = new Timer();
+						this.tapTimer.scheduleAtFixedRate(new TimerTask() {
+							public void run() {
+								firstTapUp();
+							}
+						}, 0, Settings.clickTime);
 					} else if (this.tapState == TAP_SECOND) {
 						// double-click
 						this.tapTimer = new Timer();
@@ -1444,11 +1425,7 @@ public class PadActivity extends Activity {
 			if(scrollTag==true) scrollCount++;
 			else scrollCount = 0;
 			scrollTag = true; //flag multi touch state for next up event
-			if(Settings.twoTouchRightClick == true){ //if two finger right click is enabled we need to delay scrolling (1 iterations)
-				if(dir!=0 && scrollCount > rightClickAllowance) { this.sendScrollEvent(dir); }//lets only send scroll events if there is distance to scroll
-			} else {
-				if(dir!=0) this.sendScrollEvent(dir); //lets only send scroll events if there is distance to scroll
-			}
+			if(dir!=0) this.sendScrollEvent(dir); //lets only send scroll events if there is distance to scroll
 		} else if (type == 2) {
 			// if type is 0 or 1, the server will not do anything with it, so we
 			// only send type 2 events
