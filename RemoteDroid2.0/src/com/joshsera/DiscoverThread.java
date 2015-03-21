@@ -1,12 +1,13 @@
 package com.joshsera;
 
-import android.util.*;
-import java.io.*;
-import java.net.*;
+import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.MulticastSocket;
 
 public class DiscoverThread extends Thread {
 	//
-	private static final String TAG = "DiscoverThread";
 	private static int BUFFER_LENGTH = 1024;
 	public static String MULTICAST_ADDRESS = "230.6.6.6";
 	private static final String ID_REQUEST = "RemoteDroid:AnyoneHome";

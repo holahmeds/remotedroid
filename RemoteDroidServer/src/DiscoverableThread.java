@@ -90,6 +90,7 @@ public class DiscoverableThread extends Thread {
 			DatagramSocket outSocket = new DatagramSocket();
 			//outSocket.joinGroup(InetAddress.getByName(MULTICAST_ADDRESS));
 			outSocket.send(p);
+			outSocket.close();
 		}
 	}
 }

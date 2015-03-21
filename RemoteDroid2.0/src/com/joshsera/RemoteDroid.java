@@ -1,19 +1,21 @@
 package com.joshsera;
 
+import java.util.Vector;
+
 import android.app.Activity;
 import android.content.Intent;
-import android.os.*;
+import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
-import android.view.*;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.ListView;
-import android.widget.SimpleAdapter;
-import android.widget.TextView;
 import android.widget.Toast;
-import java.util.*;
 
 /*
  * To-do
@@ -36,7 +38,6 @@ public class RemoteDroid extends Activity {
 	//
 	private DiscoverThread discover;
 	private Handler handler;
-	private SimpleAdapter adapter;
 	private Vector<String> hostlist;
 
 	public RemoteDroid() {
@@ -74,7 +75,7 @@ public class RemoteDroid extends Activity {
 		// discover some servers
 		this.hostlist = new Vector<String>();
 		((ListView)this.findViewById(R.id.lvHosts)).setOnItemClickListener(new AdapterView.OnItemClickListener() {
-			public void onItemClick(AdapterView adapter, View v, int position, long id) {
+			public void onItemClick(AdapterView<?> adapter, View v, int position, long id) {
 				onHostClick(position);
 			}
 		});

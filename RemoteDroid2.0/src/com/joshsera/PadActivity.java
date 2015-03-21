@@ -2,6 +2,7 @@ package com.joshsera;
 
 import java.net.InetAddress;
 import java.util.ArrayList;
+import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -214,7 +215,7 @@ public class PadActivity extends Activity {
 					{
 						if (chr.equals(":"))
 						{
-							name = current.trim().toLowerCase();
+							name = current.trim().toLowerCase(Locale.getDefault());
 							current = "";
 						}
 						else if (chr.equals("}") || chr.equals(";"))
@@ -652,16 +653,15 @@ public class PadActivity extends Activity {
 	private void sendKey(int keycode)
 	{
 		
-		Log.d("SEND_KEY", keycode + " '" + new Character(
-				Character.toChars(Settings.charmap.get(keycode, 0))[0]).toString()+"'");
+		Log.d("SEND_KEY", keycode + " '" + Character.valueOf(
+				Character.toChars(Settings.charmap.get(keycode, 0))[0]) + "'");
 		try
 		{
 			{
 				Object[] args = new Object[3];
 				args[0] = 0; /* key down */
 				args[1] = keycode;// (int)c;
-				args[2] = new Character(
-						Character.toChars(Settings.charmap.get(keycode, 0))[0]).toString();
+				args[2] = String.valueOf(Character.toChars(Settings.charmap.get(keycode, 0))[0]);
 				OSCMessage msg = new OSCMessage("/keyboard", args);
 
 				this.sender.send(msg);
@@ -671,8 +671,7 @@ public class PadActivity extends Activity {
 				Object[] args = new Object[3];
 				args[0] = 1; /* key down */
 				args[1] = keycode;// (int)c;
-				args[2] = new Character(
-						Character.toChars(Settings.charmap.get(keycode, 0))[0]).toString();
+				args[2] = String.valueOf(Character.toChars(Settings.charmap.get(keycode, 0))[0]);
 				OSCMessage msg = new OSCMessage("/keyboard", args);
 
 				this.sender.send(msg);
@@ -734,10 +733,10 @@ public class PadActivity extends Activity {
 			boolean isShift = false;
 			boolean isCtrl = false;
 			
-			if(!c.toLowerCase().equals(c))
+			if(!c.toLowerCase(Locale.getDefault()).equals(c))
 			{
 				isShift = true;
-				c = c.toLowerCase();
+				c = c.toLowerCase(Locale.getDefault());
 			}
 			
 			int key = 0;
@@ -905,8 +904,7 @@ public class PadActivity extends Activity {
 				{
 					if (Settings.charmap.isPrintingKey(z))
 					{
-						if (new Character(Character.toChars(Settings.charmap
-								.get(z, 0))[0]).toString().equals(c))
+						if (String.valueOf(Character.toChars(Settings.charmap.get(z, 0))[0]).equals(c))
 						{
 							key = z;
 							break;
@@ -920,7 +918,7 @@ public class PadActivity extends Activity {
 					Object[] args = new Object[3];
 					args[0] = 0; /* key down */
 					args[1] = 57;// (int)c;
-					args[2] = new Character((char)0).toString();
+					args[2] = String.valueOf((char)0);
 					OSCMessage msg = new OSCMessage("/keyboard", args);
 
 					this.sender.send(msg);
@@ -930,7 +928,7 @@ public class PadActivity extends Activity {
 					Object[] args = new Object[3];
 					args[0] = 0; /* key down */
 					args[1] = 59;// (int)c;
-					args[2] = new Character((char)0).toString();
+					args[2] = String.valueOf((char)0);
 					OSCMessage msg = new OSCMessage("/keyboard", args);
 
 					this.sender.send(msg);
@@ -960,7 +958,7 @@ public class PadActivity extends Activity {
 					Object[] args = new Object[3];
 					args[0] = 1; /* key up */
 					args[1] = 59;// (int)c;
-					args[2] = new Character((char)0).toString();
+					args[2] = String.valueOf((char)0);
 					OSCMessage msg = new OSCMessage("/keyboard", args);
 
 					this.sender.send(msg);
@@ -970,7 +968,7 @@ public class PadActivity extends Activity {
 					Object[] args = new Object[3];
 					args[0] = 1; /* key up */
 					args[1] = 57;// (int)c;
-					args[2] = new Character((char)0).toString();
+					args[2] = String.valueOf((char)0);
 					OSCMessage msg = new OSCMessage("/keyboard", args);
 
 					this.sender.send(msg);
@@ -1159,8 +1157,7 @@ public class PadActivity extends Activity {
 		Object[] args = new Object[3];
 		args[0] = 0; /* key down */
 		args[1] = keycode;
-		args[2] = new Character(
-				Character.toChars(Settings.charmap.get(keycode, ev.getMetaState()))[0]).toString();
+		args[2] = String.valueOf(Character.toChars(Settings.charmap.get(keycode, ev.getMetaState()))[0]);
 		OSCMessage msg = new OSCMessage("/keyboard", args);
 		try {
 			this.sender.send(msg);
@@ -1192,8 +1189,7 @@ public class PadActivity extends Activity {
 		Object[] args = new Object[3];
 		args[0] = 1; /* key up */
 		args[1] = keycode;
-		args[2] = new Character(
-				Character.toChars(Settings.charmap.get(keycode, ev.getMetaState()))[0]).toString();
+		args[2] = String.valueOf(Character.toChars(Settings.charmap.get(keycode, ev.getMetaState()))[0]);
 		OSCMessage msg = new OSCMessage("/keyboard", args);
 		try {
 			this.sender.send(msg);
