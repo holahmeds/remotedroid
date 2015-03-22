@@ -1,10 +1,17 @@
-import java.awt.*;
-import java.awt.event.*;
-import java.io.*;
-import java.net.*;
-import java.util.jar.*;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Frame;
+import java.awt.Graphics;
+import java.awt.Image;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 
-import javax.swing.*;
+import javax.imageio.ImageIO;
+import javax.swing.Timer;
 
 
 public class AppFrame extends Frame {
@@ -13,9 +20,7 @@ public class AppFrame extends Frame {
 	 */
 	
 	private static final long serialVersionUID = 1L;
-	//
-	public static JarFile jar;
-	public static String basePath = "";
+
 	public static InetAddress localAddr;
 	
 	//
@@ -34,18 +39,12 @@ public class AppFrame extends Frame {
 	private OSCWorld world;
 	//
 	private String appName = "RemoteDroid Server R2"; //added R2 so that version 2 of client will not confuse users as R2 is not needed for all features, and a future Client v3.0 might still use R2/v2.0 of the server
-	//
-	private Toolkit toolkit;
-	private MediaTracker tracker;
 	
 	public AppFrame() {
 		super();
 		GlobalData.oFrame = this;
 		this.setSize(this.width, this.height);
-		//
-		this.toolkit = Toolkit.getDefaultToolkit();
-		this.tracker = new MediaTracker(this);
-		//
+		
 		//this.init();
 		// get local IP
 		String sHost = "";
@@ -65,64 +64,20 @@ public class AppFrame extends Frame {
 		this.textLines[3] = "";
 		this.textLines[4] = "Enter this IP address on the start screen of the";
 		this.textLines[5] = "RemoteDroid application on your phone to begin.";
-		//
-		try {
-			URL fileURL = this.getClass().getProtectionDomain().getCodeSource().getLocation();
-			String sBase = fileURL.toString();
-			if ("jar".equals(sBase.substring(sBase.length()-3, sBase.length()))) {
-				jar = new JarFile(new File(fileURL.toURI()));
-				
-			} else {
-				basePath = System.getProperty("user.dir") + "\\res\\";
-			}
-		} catch (Exception ex) {
-			this.textLines[1] = "exception: "+ex.toString();
-			
-		}
-		
 	}
 	
 	public Image getImage(String sImage) {
 		Image imReturn = null;
 		try {
-			if (jar == null) {
-				imReturn = this.toolkit.createImage(this.getClass().getClassLoader().getResource(sImage));
-			} else {
-				//
-				BufferedInputStream bis = new BufferedInputStream(jar.getInputStream(jar.getEntry(sImage)));
-				ByteArrayOutputStream buffer=new ByteArrayOutputStream(4096);
-				int b;
-				while((b=bis.read())!=-1) {
-					buffer.write(b);
-				}
-				byte[] imageBuffer=buffer.toByteArray();
-				imReturn = this.toolkit.createImage(imageBuffer);
-				bis.close();
-				buffer.close();
-			}
-		} catch (IOException ex) {
-			
+			InputStream inputStream = getClass().getResourceAsStream(sImage);
+			imReturn = ImageIO.read(inputStream);
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 		return imReturn;
 	}
 	
 	public void init() {
-		//
-		try {
-			this.imLogo = this.getImage("icon.gif");
-			tracker.addImage(this.imLogo, 0);
-			tracker.waitForID(0);
-		} catch (InterruptedException inex) {
-			
-		}
-		//
-		try {
-			this.imHelp = this.getImage("helpphoto.jpg");
-			tracker.addImage(this.imHelp, 1);
-			tracker.waitForID(1);
-		} catch (InterruptedException ie) {
-		}
-		//
 		this.fontTitle = new Font("Verdana", Font.BOLD, 16);
 		this.fontText = new Font("Verdana", Font.PLAIN, 11);
 		this.setBackground(Color.BLACK);

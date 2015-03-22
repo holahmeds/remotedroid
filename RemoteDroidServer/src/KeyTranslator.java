@@ -1,4 +1,3 @@
-import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 
@@ -27,18 +26,9 @@ public class KeyTranslator {
 		String sPath = "config.xml";
 		try {
 			DocumentBuilder builder = factory.newDocumentBuilder();
-			if (AppFrame.jar == null) {
-				this.myDoc = builder.parse( new File((AppFrame.basePath+sPath).replace('\\', '/')) );//ensure seperator is '/' as linux is picky
-			} else {
-				this.myDoc = builder.parse(AppFrame.jar.getInputStream(AppFrame.jar.getJarEntry(sPath)));
-			}
+			this.myDoc = builder.parse(getClass().getResourceAsStream(sPath));
 	    } catch (SAXException sxe) {
-	       // Error generated during parsing
-	       Exception  x = sxe;
-	       if (sxe.getException() != null)
-	           x = sxe.getException();
-	       x.printStackTrace();
-	
+	    	sxe.printStackTrace();
 	    } catch (ParserConfigurationException pce) {
 	       // Parser with specified options can't be built
 	       pce.printStackTrace();
