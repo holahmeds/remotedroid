@@ -78,6 +78,8 @@ public class AppFrame extends Frame {
 	}
 	
 	public void init() {
+		imHelp = getImage("helpphoto.jpg");
+		imLogo = getImage("icon.gif");
 		this.fontTitle = new Font("Verdana", Font.BOLD, 16);
 		this.fontText = new Font("Verdana", Font.PLAIN, 11);
 		this.setBackground(Color.BLACK);
