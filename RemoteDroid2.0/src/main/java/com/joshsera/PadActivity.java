@@ -2,6 +2,8 @@ package com.joshsera;
 
 import java.net.InetAddress;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -662,7 +664,7 @@ public class PadActivity extends Activity {
 				args[0] = 0; /* key down */
 				args[1] = keycode;// (int)c;
 				args[2] = String.valueOf(Character.toChars(Settings.charmap.get(keycode, 0))[0]);
-				OSCMessage msg = new OSCMessage("/keyboard", args);
+				OSCMessage msg = new OSCMessage("/keyboard", Arrays.asList(args));
 
 				this.sender.send(msg);
 
@@ -672,7 +674,7 @@ public class PadActivity extends Activity {
 				args[0] = 1; /* key down */
 				args[1] = keycode;// (int)c;
 				args[2] = String.valueOf(Character.toChars(Settings.charmap.get(keycode, 0))[0]);
-				OSCMessage msg = new OSCMessage("/keyboard", args);
+				OSCMessage msg = new OSCMessage("/keyboard", Arrays.asList(args));
 
 				this.sender.send(msg);
 
@@ -919,7 +921,7 @@ public class PadActivity extends Activity {
 					args[0] = 0; /* key down */
 					args[1] = 57;// (int)c;
 					args[2] = String.valueOf((char)0);
-					OSCMessage msg = new OSCMessage("/keyboard", args);
+					OSCMessage msg = new OSCMessage("/keyboard", Arrays.asList(args));
 
 					this.sender.send(msg);
 				}
@@ -929,7 +931,7 @@ public class PadActivity extends Activity {
 					args[0] = 0; /* key down */
 					args[1] = 59;// (int)c;
 					args[2] = String.valueOf((char)0);
-					OSCMessage msg = new OSCMessage("/keyboard", args);
+					OSCMessage msg = new OSCMessage("/keyboard", Arrays.asList(args));
 
 					this.sender.send(msg);
 				}
@@ -939,7 +941,7 @@ public class PadActivity extends Activity {
 					args[0] = 0; /* key down */
 					args[1] = key;// (int)c;
 					args[2] = c;
-					OSCMessage msg = new OSCMessage("/keyboard", args);
+					OSCMessage msg = new OSCMessage("/keyboard", Arrays.asList(args));
 
 					this.sender.send(msg);
 
@@ -949,7 +951,7 @@ public class PadActivity extends Activity {
 					args[0] = 1; /* key up */
 					args[1] = key;// (int)c;
 					args[2] = c;
-					OSCMessage msg = new OSCMessage("/keyboard", args);
+					OSCMessage msg = new OSCMessage("/keyboard", Arrays.asList(args));
 
 					this.sender.send(msg);
 
@@ -959,7 +961,7 @@ public class PadActivity extends Activity {
 					args[0] = 1; /* key up */
 					args[1] = 59;// (int)c;
 					args[2] = String.valueOf((char)0);
-					OSCMessage msg = new OSCMessage("/keyboard", args);
+					OSCMessage msg = new OSCMessage("/keyboard", Arrays.asList(args));
 
 					this.sender.send(msg);
 				}
@@ -969,7 +971,7 @@ public class PadActivity extends Activity {
 					args[0] = 1; /* key up */
 					args[1] = 57;// (int)c;
 					args[2] = String.valueOf((char)0);
-					OSCMessage msg = new OSCMessage("/keyboard", args);
+					OSCMessage msg = new OSCMessage("/keyboard", Arrays.asList(args));
 
 					this.sender.send(msg);
 				}
@@ -1158,7 +1160,7 @@ public class PadActivity extends Activity {
 		args[0] = 0; /* key down */
 		args[1] = keycode;
 		args[2] = String.valueOf(Character.toChars(Settings.charmap.get(keycode, ev.getMetaState()))[0]);
-		OSCMessage msg = new OSCMessage("/keyboard", args);
+		OSCMessage msg = new OSCMessage("/keyboard", Arrays.asList(args));
 		try {
 			this.sender.send(msg);
 		} catch (Exception ex) {
@@ -1190,7 +1192,7 @@ public class PadActivity extends Activity {
 		args[0] = 1; /* key up */
 		args[1] = keycode;
 		args[2] = String.valueOf(Character.toChars(Settings.charmap.get(keycode, ev.getMetaState()))[0]);
-		OSCMessage msg = new OSCMessage("/keyboard", args);
+		OSCMessage msg = new OSCMessage("/keyboard", Arrays.asList(args));
 		try {
 			this.sender.send(msg);
 		} catch (Exception ex) {
@@ -1211,7 +1213,7 @@ public class PadActivity extends Activity {
 			args[0] = 0; /* key down */
 			args[1] = 60;
 			args[2] = "CTRL";
-			OSCMessage msg = new OSCMessage("/keyboard", args);
+			OSCMessage msg = new OSCMessage("/keyboard", Arrays.asList(args));
 			try {
 				this.sender.send(msg);
 			} catch (Exception ex) {
@@ -1224,7 +1226,7 @@ public class PadActivity extends Activity {
 			args[0] = 1; /* key up */
 			args[1] = 60;
 			args[2] = "CTRL";
-			OSCMessage msg = new OSCMessage("/keyboard", args);
+			OSCMessage msg = new OSCMessage("/keyboard", Arrays.asList(args));
 			try {
 				this.sender.send(msg);
 			} catch (Exception ex) {
@@ -1526,17 +1528,17 @@ public class PadActivity extends Activity {
 	// abstract mouse event
 
 	private void sendMouseEvent(int type, float x, float y) {
-		//
-		float xDir = x == 0 ? 1 : x / Math.abs(x);
-		float yDir = y == 0 ? 1 : y / Math.abs(y);
-		//
-		Object[] args = new Object[3];
-		args[0] = type;
-		args[1] = (float) (Math.pow(Math.abs(x), mMouseSensitivityPower)) * xDir;
-		args[2] = (float) (Math.pow(Math.abs(y), mMouseSensitivityPower)) * yDir;
+		
+		int xDir = x >= 0 ? 1 : -1;
+		int yDir = y >= 0 ? 1 : -1;
+		
+		Object[] args = new Object[1];
+		args[0] = String.valueOf(type)
+				+ ":" + String.valueOf(Math.pow(Math.abs(x), mMouseSensitivityPower) * xDir)
+				+ ":" + String.valueOf(Math.pow(Math.abs(y), mMouseSensitivityPower) * yDir);
 		// Log.d(TAG, String.valueOf(Settings.getSensitivity()));
 		//
-		OSCMessage msg = new OSCMessage("/mouse", args);
+		OSCMessage msg = new OSCMessage("/mouse", Arrays.asList(args));
 		try {
 			this.sender.send(msg);
 		} catch (Exception ex) {
@@ -1548,7 +1550,7 @@ public class PadActivity extends Activity {
 		Object[] args = new Object[1];
 		args[0] = dir;
 		//
-		OSCMessage msg = new OSCMessage("/wheel", args);
+		OSCMessage msg = new OSCMessage("/wheel", Arrays.asList(args));
 		try {
 			this.sender.send(msg);
 		} catch (Exception ex) {
@@ -1623,7 +1625,7 @@ public class PadActivity extends Activity {
 	private synchronized void leftButtonDown() {
 		Object[] args = new Object[1];
 		args[0] = 0;
-		OSCMessage msg = new OSCMessage("/leftbutton", args);
+		OSCMessage msg = new OSCMessage("/leftbutton", Arrays.asList(args));
 		try {
 			this.sender.send(msg);
 		} catch (Exception ex) {
@@ -1636,7 +1638,7 @@ public class PadActivity extends Activity {
 	private synchronized void leftButtonUp() {
 		Object[] args = new Object[1];
 		args[0] = 1;
-		OSCMessage msg = new OSCMessage("/leftbutton", args);
+		OSCMessage msg = new OSCMessage("/leftbutton", Arrays.asList(args));
 		try {
 			this.sender.send(msg);
 		} catch (Exception ex) {
@@ -1684,7 +1686,7 @@ public class PadActivity extends Activity {
 	private void rightButtonDown() {
 		Object[] args = new Object[1];
 		args[0] = 0;
-		OSCMessage msg = new OSCMessage("/rightbutton", args);
+		OSCMessage msg = new OSCMessage("/rightbutton", Arrays.asList(args));
 		try {
 			this.sender.send(msg);
 		} catch (Exception ex) {
@@ -1697,7 +1699,7 @@ public class PadActivity extends Activity {
 	private void rightButtonUp() {
 		Object[] args = new Object[1];
 		args[0] = 1;
-		OSCMessage msg = new OSCMessage("/rightbutton", args);
+		OSCMessage msg = new OSCMessage("/rightbutton", Arrays.asList(args));
 		try {
 			this.sender.send(msg);
 		} catch (Exception ex) {

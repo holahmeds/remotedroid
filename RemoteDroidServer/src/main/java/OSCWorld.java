@@ -7,7 +7,6 @@ import java.awt.Rectangle;
 import java.awt.Robot;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.net.InetAddress;
 
 import jsera.util.World;
@@ -70,7 +69,7 @@ public class OSCWorld extends World {
 			}
 			OSCListener listener = new OSCListener() {
 				public void acceptMessage(java.util.Date time, OSCMessage message) {
-					Object[] args = message.getArguments();
+					Object[] args = ((String)message.getArguments().get(0)).split(":");
 					if (args.length == 3) {
 						mouseEvent(Integer.parseInt(args[0].toString()), Float.parseFloat(args[1]
 								.toString()), Float.parseFloat(args[2].toString()));
@@ -81,7 +80,7 @@ public class OSCWorld extends World {
 			//
 			listener = new OSCListener() {
 				public void acceptMessage(java.util.Date time, OSCMessage message) {
-					Object[] args = message.getArguments();
+					Object[] args = message.getArguments().toArray();
 					if (args.length == 1) {
 						buttonEvent(Integer.parseInt(args[0].toString()), 0);
 					}
@@ -91,7 +90,7 @@ public class OSCWorld extends World {
 			//
 			listener = new OSCListener() {
 				public void acceptMessage(java.util.Date time, OSCMessage message) {
-					Object[] args = message.getArguments();
+					Object[] args = message.getArguments().toArray();
 					if (args.length == 1) {
 						buttonEvent(Integer.parseInt(args[0].toString()), 2);
 					}
@@ -101,7 +100,7 @@ public class OSCWorld extends World {
 			//
 			listener = new OSCListener() {
 				public void acceptMessage(java.util.Date time, OSCMessage message) {
-					Object[] args = message.getArguments();
+					Object[] args = message.getArguments().toArray();
 					if (args.length == 3) {
 						keyboardEvent(Integer.parseInt(args[0].toString()), Integer
 								.parseInt(args[1].toString()), args[2].toString());
@@ -116,7 +115,7 @@ public class OSCWorld extends World {
 			//
 			listener = new OSCListener() {
 				public void acceptMessage(java.util.Date time, OSCMessage message) {
-					Object[] args = message.getArguments();
+					Object[] args = message.getArguments().toArray();
 					if (args.length == 1) {
 						scrollEvent(Integer.parseInt(args[0].toString()));
 					}
@@ -126,7 +125,7 @@ public class OSCWorld extends World {
 			//
 			listener = new OSCListener() {
 				public void acceptMessage(java.util.Date time, OSCMessage message) {
-					Object[] args = message.getArguments();
+					Object[] args = message.getArguments().toArray();
 					if (args.length == 6) {
 						orientEvent(Float.parseFloat(args[0].toString()), Float.parseFloat(args[1]
 								.toString()), Float.parseFloat(args[2].toString()), Float
@@ -138,21 +137,7 @@ public class OSCWorld extends World {
 			this.receiver.addListener("/orient", listener);
 			//
 			this.receiver.startListening();
-			// debug
-			GlobalData.oFrame.addKeyListener(new KeyListener() {
-				public void keyReleased(KeyEvent e) {
-					nativeKeyEvent(e);
-				}
 
-				public void keyPressed(KeyEvent e) {
-
-				}
-
-				public void keyTyped(KeyEvent e) {
-
-				}
-			});
-			//
 			this.gDevices = GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices();
 			int l = this.gDevices.length;
 			this.gBounds = new Rectangle[l];
@@ -170,16 +155,9 @@ public class OSCWorld extends World {
 			this.discoverable = new DiscoverableThread(OSCPort.defaultSCOSCPort()+1);
 			this.discoverable.start();
 		} catch (Exception ex) {
-
+			ex.printStackTrace();
 		}
 	}
-
-	// check keyboard events
-
-	private void nativeKeyEvent(KeyEvent ev) {
-	}
-
-	//
 
 	private void mouseEvent(int type, float xOffset, float yOffset) {
 		if (type == 2) {
