@@ -47,23 +47,21 @@ public class LinuxInetAddress {
 	 * @throws UnknownHostException - if there is a problem determining addresses
 	 */
 	private static InetAddress[] getAllLocalUsingNetworkInterface() throws UnknownHostException {
-		ArrayList addresses = new ArrayList();
-		Enumeration e = null;
+		ArrayList<InetAddress> addresses = new ArrayList<InetAddress>();
+		Enumeration<NetworkInterface> interfaces = null;
 		try {
-			e = NetworkInterface.getNetworkInterfaces();
+			interfaces = NetworkInterface.getNetworkInterfaces();
 		} catch (SocketException ex) {
 			throw new UnknownHostException("127.0.0.1");
 		}
-		while(e.hasMoreElements()) {
-			NetworkInterface ni = (NetworkInterface)e.nextElement();
-			for(Enumeration e2 = ni.getInetAddresses(); e2.hasMoreElements();) {
+		
+		while(interfaces.hasMoreElements()) {
+			NetworkInterface ni = interfaces.nextElement();
+			for(Enumeration<InetAddress> e2 = ni.getInetAddresses(); e2.hasMoreElements();) {
 				addresses.add(e2.nextElement());
 			}	
 		}
-		InetAddress[] iAddresses = new InetAddress[addresses.size()];
-		for(int i=0; i<iAddresses.length; i++) {
-			iAddresses[i] = (InetAddress)addresses.get(i);
-		}
-		return iAddresses;
+		
+		return addresses.toArray(new InetAddress[addresses.size()]);
 	}
 }

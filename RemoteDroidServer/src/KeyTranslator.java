@@ -12,7 +12,7 @@ import org.xml.sax.SAXException;
 
 public class KeyTranslator {
 	//
-	public HashMap codes;
+	public HashMap<Integer, KeyCodeData> codes;
 	//
 	private int[] modifiers;
 	private int[] shifts;
@@ -61,7 +61,7 @@ public class KeyTranslator {
 			this.ctrls[i] = Integer.parseInt(((Element)mods.item(i)).getAttribute("code"));
 		}
 		// fill the keycodedata hashmap
-		this.codes = new HashMap();
+		this.codes = new HashMap<Integer, KeyCodeData>();
 		KeyCodeData data;
 		int keycode;
 		Element keydata;
@@ -78,7 +78,7 @@ public class KeyTranslator {
 			data.shiftedcode = Integer.parseInt(keydata.getAttribute("shiftedcode"));
 			keycode = Integer.parseInt(keydata.getAttribute("code"));
 			//
-			this.codes.put(new Integer(keycode), data);
+			this.codes.put(keycode, data);
 		}
 		// simulated mouse button
 		mods = config.getElementsByTagName("leftclick");
