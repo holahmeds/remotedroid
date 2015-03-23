@@ -3,12 +3,14 @@ import java.awt.AWTException;
 import java.awt.Image;
 import java.awt.SystemTray;
 import java.awt.TrayIcon;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
 
-import javax.swing.ImageIcon;
+import javax.imageio.ImageIO;
 
 /**
  * to-do:
@@ -17,61 +19,64 @@ import javax.swing.ImageIcon;
 
 
 public class RemoteDroidServer {
-	private static AppFrame f;
-	
+	private static AppFrame frame;
+	private static OSCWorld world;
+
 	public static void main(String[] args) {
-		
-		f = new AppFrame();
-		f.setVisible(true);
-		f.setResizable(false);
-		f.setTitle("RemoteDroid Server");
-		
-		f.addWindowListener(new WindowAdapter() {
-	    	public void windowClosing(WindowEvent e) {
-		        f.setVisible(false);
-		        f.dispose();
-		        System.exit(0);
-	    	}
-	    	
-	    	public void windowIconified(WindowEvent e) {
-	    		f.setVisible(false);
-	    	}
-	    });
-		/*
-		f = new Frame();
-		
-	    */
-		f.init();
-		//
+		frame = new AppFrame();
+		frame.addWindowListener(new WindowAdapter() {
+			@Override
+			public void windowClosed(WindowEvent e) {
+				super.windowClosed(e);
+				System.exit(0);
+			}
+		});
+		frame.setVisible(true);
+
 		System.out.println(System.getProperty("os.name"));
-		
+
 		if (SystemTray.isSupported()) {
-			
-		    //SystemTray tray = SystemTray.getSystemTray();
-		    ImageIcon icon = new ImageIcon(RemoteDroidServer.class.getResource("icon.gif"));
+			try {
+				BufferedImage icon = 
+						ImageIO.read(RemoteDroidServer.class.
+								getResourceAsStream("icon.gif"));
+				TrayIcon tray = new TrayIcon(
+						icon.getScaledInstance(24, 24, Image.SCALE_DEFAULT));
 
-		    TrayIcon tray = new TrayIcon(icon.getImage().getScaledInstance(24, 24, Image.SCALE_DEFAULT), "My Caption");
-		    
-		    tray.addMouseListener(new MouseListener(){
+				tray.addMouseListener(new MouseAdapter(){
+					@Override
+					public void mouseClicked(MouseEvent e) {
+						if(frame.isVisible())
+							frame.setVisible(false);
+						else
+							frame.setVisible(true);
+					}
+				});
 
-				public void mouseClicked(MouseEvent e) {
-					if(f.isVisible())
-						f.setVisible(false);
-					else
-						f.setVisible(true);
-				}
-				public void mouseEntered(MouseEvent e) {}
-				public void mouseExited(MouseEvent e) {}
-				public void mousePressed(MouseEvent e) {}
-				public void mouseReleased(MouseEvent e) {}
-		    });
-		    
-		    try {
-		    	SystemTray.getSystemTray().add(tray);
-		    } catch (AWTException e) {
-		    	e.printStackTrace();
-		    }
+				SystemTray.getSystemTray().add(tray);
+				frame.addWindowListener(new WindowAdapter() {
+					@Override
+					public void windowIconified(WindowEvent e) {
+						frame.setVisible(false);
+					}
+				});
+			} catch (AWTException e) {
+				System.err.println("Enable to add tray to system tray.");
+				e.printStackTrace();
+			} catch (IOException e1) {
+				System.err.println("Unable to load tray icon.\nTray disabled.");
+				e1.printStackTrace();
+			}
 		}
-
+		
+		// The following used to be delayed by javax.swing.Timer
+		// Not sure why. Switched to Thread.sleep
+		try {
+			Thread.sleep(500);
+		} catch (InterruptedException e1) {
+			System.out.println("Woke up from sleep early.\nContinueing.");
+		}
+		world = new OSCWorld();
+		world.onEnter();
 	}
 }
