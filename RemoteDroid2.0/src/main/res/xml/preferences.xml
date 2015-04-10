@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <CheckBoxPreference
+        android:key="tapclick"
+        android:title="Tap-to-click"
+        android:defaultValue="true"/>
+
+    <EditTextPreference
+        android:key="taptime"
+        android:title="Tap Speed"
+        android:numeric="integer"
+        android:defaultValue="200"/>
+
+    <EditTextPreference
+        android:key="sensitivity"
+        android:title="Mouse Sensitivity"
+        android:numeric="integer"
+        android:defaultValue="0"/>
+
+    <EditTextPreference
+        android:key="scrollSensitivity"
+        android:title="Scroll Sensitivity"
+        android:numeric="integer"
+        android:defaultValue="50"/>
+
+    <CheckBoxPreference
+        android:key="scrollInverted"
+        android:title="Invert scroll direction"
+        android:defaultValue="false"/>
+
+</PreferenceScreen>

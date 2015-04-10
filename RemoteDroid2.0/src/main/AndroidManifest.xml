@@ -28,7 +28,9 @@
         <activity
             android:name="PadActivity"
             android:parentActivityName=".RemoteDroid"
-            android:screenOrientation="user" />
+            android:screenOrientation="portrait" />
+
+        <activity android:name=".PreferenceActivity"/>
 
     </application>
 </manifest> 

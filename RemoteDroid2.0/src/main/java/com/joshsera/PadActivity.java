@@ -1,16 +1,17 @@
 package com.joshsera;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.StrictMode;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.Window;
-import android.view.WindowManager;
 import android.widget.FrameLayout;
 
 import com.illposed.osc.OSCMessage;
@@ -24,14 +25,6 @@ import java.util.TimerTask;
 
 /**
  * @author jsera
- *         <p/>
- *         <pre>
- *                                 TODO:
- *                                 trackbutton + mouse click toggles the mouse button to enable click and drag
- *                                 add scroll wheel
- *                                 add port selection text box on front page
- *                                 add back button. Make it go back to the IP connect page
- *                         </pre>
  */
 
 public class PadActivity extends Activity {
@@ -100,8 +93,6 @@ public class PadActivity extends Activity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // Hide the title bar
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
 
         /**
          * Caches information and forces WrappedMotionEvent class to load at
@@ -110,17 +101,6 @@ public class PadActivity extends Activity {
         this.mIsMultitouchEnabled = WrappedMotionEvent.isMutitouchCapable();
 
         prefs = PreferenceManager.getDefaultSharedPreferences(this);
-
-        // Setup accelerations
-        mMouseSensitivityPower = 1
-                + Integer.parseInt(prefs.getString(PreferenceActivity.SENSITIVITY, "0")) / 100d;
-        mScrollStep = (sScrollStepMin - sScrollStepMax)
-                * (sScrollMaxSettingsValue - Integer.parseInt(prefs.getString(PreferenceActivity.SCROLL_SENSITIVITY, "50")))
-                / sScrollMaxSettingsValue
-                + sScrollStepMax;
-
-        Log.d(TAG, "mScrollStep=" + mScrollStep);
-        Log.d(TAG, "Settings.sensitivity=" + prefs.getString(PreferenceActivity.SENSITIVITY, "0"));
 
         // UI runnables
         this.rLeftDown = new Runnable() {
@@ -143,9 +123,6 @@ public class PadActivity extends Activity {
                 drawButtonOff(flRightButton);
             }
         };
-        // window manager stuff
-        this.getWindow().setFlags(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN,
-                WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
 
         //
         try {
@@ -163,6 +140,41 @@ public class PadActivity extends Activity {
         } catch (Exception ex) {
             Log.d(TAG, ex.toString(), ex);
         }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        super.onCreateOptionsMenu(menu);
+
+        getMenuInflater().inflate(R.menu.pad_menu, menu);
+
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.show_prefs:
+                startActivity(new Intent(this, PreferenceActivity.class));
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Setup accelerations
+        mMouseSensitivityPower = 1
+                + Integer.parseInt(prefs.getString(PreferenceActivity.SENSITIVITY, "0")) / 100d;
+        mScrollStep = (sScrollStepMin - sScrollStepMax)
+                * (sScrollMaxSettingsValue - Integer.parseInt(prefs.getString(PreferenceActivity.SCROLL_SENSITIVITY, "50")))
+                / sScrollMaxSettingsValue
+                + sScrollStepMax;
+
+        Log.d(TAG, "mScrollStep=" + mScrollStep);
+        Log.d(TAG, "Settings.sensitivity=" + prefs.getString(PreferenceActivity.SENSITIVITY, "0"));
     }
 
     private void initTouchpad() {
@@ -227,7 +239,7 @@ public class PadActivity extends Activity {
                 // scrollX = 0;
                 scrollY = 0;
                 //
-                if (Boolean.parseBoolean(prefs.getString(PreferenceActivity.TAP_TO_CLICK, "true"))
+                if (prefs.getBoolean(PreferenceActivity.TAP_TO_CLICK, true)
                         && (pointerCount == 1)) {
                     if (this.tapState == TAP_NONE) {
                         // first tap
@@ -254,7 +266,7 @@ public class PadActivity extends Activity {
                 //
                 break;
             case MotionEvent.ACTION_UP:
-                if (Boolean.parseBoolean(prefs.getString(PreferenceActivity.TAP_TO_CLICK, "true"))
+                if (prefs.getBoolean(PreferenceActivity.TAP_TO_CLICK, true)
                         && (pointerCount == 1)) {
                     // it's a tap!
                     long now = System.currentTimeMillis();
@@ -357,7 +369,7 @@ public class PadActivity extends Activity {
                     dir = -1;
                 }
 
-                if (Boolean.parseBoolean(prefs.getString(PreferenceActivity.SCROLL_INVERTED, "false"))) {
+                if (prefs.getBoolean(PreferenceActivity.SCROLL_INVERTED, false)) {
                     dir = -dir;
                 }
 

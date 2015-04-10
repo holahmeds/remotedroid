@@ -6,3 +6,6 @@ lint.xml
 .settings/
 RemoteDroid2.0/res
 RemoteDroid2.0/AndroidManifest.xml
+.idea/
+*.iml
+local.properties
