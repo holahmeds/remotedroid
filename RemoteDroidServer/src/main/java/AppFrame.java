@@ -1,100 +1,130 @@
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.Frame;
-import java.awt.Graphics;
+import java.awt.AWTException;
+import java.awt.BorderLayout;
 import java.awt.Image;
+import java.awt.SystemTray;
+import java.awt.TrayIcon;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 import javax.imageio.ImageIO;
+import javax.swing.ImageIcon;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.WindowConstants;
+import javax.swing.border.Border;
+import javax.swing.border.EmptyBorder;
 
 
-public class AppFrame extends Frame {
-	/**
-	 * 
-	 */
-	
-	private static final long serialVersionUID = 1L;
+public class AppFrame extends JFrame {
+    /**
+     *
+     */
+    private static final long serialVersionUID = 1L;
 
-	public static InetAddress localAddr;
-	
-	//
-	private String[] textLines = new String[6];
-	//
-	private Image imLogo;
-	private Image imHelp;
-	private Font fontTitle;
-	private Font fontText;
-	
-	private int height = 510;
-	private int width = 540;
-	
-	private String appName = "RemoteDroid Server R2"; //added R2 so that version 2 of client will not confuse users as R2 is not needed for all features, and a future Client v3.0 might still use R2/v2.0 of the server
-	
-	public AppFrame() {
-		this.setResizable(false);
-		this.setSize(this.width, this.height);
-		this.setTitle("RemoteDroid Server");
+    private Border border = new EmptyBorder(5, 5, 5, 5);
+    private String appName = "RemoteDroid Server";
 
-		// get local IP
-		String sHost = "";
-		try {
-			localAddr = InetAddress.getLocalHost();
-			if (localAddr.isLoopbackAddress()) {
-				localAddr = LinuxInetAddress.getLocalHost();
-			}
-			sHost = localAddr.getHostAddress();
-		} catch (UnknownHostException ex) {
-			sHost = "Error finding local IP.";
-		}
-		//
-		this.textLines[0] = "The RemoteDroid server application is now running.";
-		this.textLines[1] = "";
-		this.textLines[2] = "Your IP address is: "+sHost;
-		this.textLines[3] = "";
-		this.textLines[4] = "Enter this IP address on the start screen of the";
-		this.textLines[5] = "RemoteDroid application on your phone to begin.";
-		
-		imHelp = getImage("helpphoto.jpg");
-		imLogo = getImage("icon.gif");
-		this.fontTitle = new Font("Verdana", Font.BOLD, 16);
-		this.fontText = new Font("Verdana", Font.PLAIN, 11);
-		this.setBackground(Color.BLACK);
-		this.setForeground(Color.WHITE);
-	}
-	
-	public Image getImage(String sImage) {
-		Image imReturn = null;
-		try {
-			InputStream inputStream = getClass().getResourceAsStream(sImage);
-			imReturn = ImageIO.read(inputStream);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return imReturn;
-	}
-	
-	public void paint(Graphics g) {
-		g.setColor(this.getBackground());
-		g.fillRect(0, 0, this.width, this.height);
-		g.setColor(this.getForeground());
-		//
-		g.drawImage(this.imLogo, 10, 30, this);
-		g.setFont(this.fontTitle);
-		g.drawString(this.appName, 70, 55);
-		//
-		g.setFont(this.fontText);
-		int startY = 90;
-		int l = 6;
-		for (int i = 0;i<l;++i) {
-			g.drawString(this.textLines[i], 10, startY);
-			startY += 13;
-		}
-		//
-		g.drawImage(this.imHelp, 20, startY+10, this);
-	}
-	/*
-	*/
+    public AppFrame() {
+        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        this.setTitle("RemoteDroid Server");
+
+        // get local IP
+        String sHost;
+        try {
+            InetAddress localAddr = InetAddress.getLocalHost();
+            if (localAddr.isLoopbackAddress()) {
+                localAddr = LinuxInetAddress.getLocalHost();
+            }
+            sHost = localAddr.getHostAddress();
+        } catch (UnknownHostException ex) {
+            sHost = "Error finding local IP.";
+        }
+
+        String textLines = "<html>The RemoteDroid server application is now running.<br><br>Your IP address is: " + sHost + "<br><br>Enter this IP address on the start screen of the<br>RemoteDroid application on your phone to begin.</html>";
+        Image imLogo = getImage("icon.gif");
+
+        JPanel contentPane = new JPanel();
+        contentPane.setBorder(border);
+        setContentPane(contentPane);
+        contentPane.setLayout(new BorderLayout(5, 5));
+        setIconImage(imLogo);
+
+        JPanel panel = new JPanel();
+        panel.setBorder(border);
+        contentPane.add(panel, BorderLayout.NORTH);
+        panel.setLayout(new BorderLayout(5, 5));
+
+        JLabel lblLogo = new JLabel();
+        lblLogo.setIcon(new ImageIcon(imLogo));
+        panel.add(lblLogo, BorderLayout.WEST);
+
+        JLabel lbAppName = new JLabel(appName);
+        panel.add(lbAppName, BorderLayout.CENTER);
+
+        JLabel lbtextLines = new JLabel(textLines);
+        contentPane.add(lbtextLines, BorderLayout.CENTER);
+
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                super.windowClosing(e);
+                System.exit(0);
+            }
+        });
+
+        if (SystemTray.isSupported()) {
+            try {
+                BufferedImage icon =
+                        ImageIO.read(RemoteDroidServer.class.
+                                getResourceAsStream("icon.gif"));
+                TrayIcon tray = new TrayIcon(icon);
+                tray.setImageAutoSize(true);
+
+                tray.addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
+                        if (isVisible())
+                            setVisible(false);
+                        else
+                            setVisible(true);
+                    }
+                });
+
+                SystemTray.getSystemTray().add(tray);
+                addWindowListener(new WindowAdapter() {
+                    @Override
+                    public void windowIconified(WindowEvent e) {
+                        setVisible(false);
+                    }
+                });
+            } catch (AWTException e) {
+                System.err.println("Enable to add tray to system tray.");
+                e.printStackTrace();
+            } catch (IOException e1) {
+                System.err.println("Unable to load tray icon.\nTray disabled.");
+                e1.printStackTrace();
+            }
+        }
+
+        pack();
+    }
+
+    public Image getImage(String sImage) {
+        Image imReturn = null;
+        try {
+            InputStream inputStream = getClass().getResourceAsStream(sImage);
+            imReturn = ImageIO.read(inputStream);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return imReturn;
+    }
 }
