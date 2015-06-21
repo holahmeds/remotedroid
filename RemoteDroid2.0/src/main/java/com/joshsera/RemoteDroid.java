@@ -59,10 +59,10 @@ public class RemoteDroid extends Activity {
         });
 
         // discover some servers
-        this.hostlist = new ArrayList<InetAddress>();
+        this.hostlist = new ArrayList<>();
         lvHosts = (ListView) findViewById(R.id.lvHosts);
         lvHosts.setAdapter(
-                new ArrayAdapter<InetAddress>(this, R.layout.savedhost, R.id.hostEntry, hostlist));
+                new ArrayAdapter<>(this, R.layout.savedhost, R.id.hostEntry, hostlist));
         lvHosts.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> adapter, View v, int position, long id) {
                 new ConnectAsync().execute(hostlist.get(position));
@@ -75,7 +75,7 @@ public class RemoteDroid extends Activity {
             savedHosts = (ArrayList<SavedHost>) ois.readObject();
         } catch (FileNotFoundException e) {
             Log.d(TAG, "No saved hosts file found. Will create one when exiting");
-            savedHosts = new ArrayList<SavedHost>();
+            savedHosts = new ArrayList<>();
         } catch (IOException | ClassNotFoundException e) {
             Log.e(TAG, "Error reading saved hosts.", e);
         }

@@ -7,12 +7,13 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
+import java.nio.charset.Charset;
 
 public class DiscoverThread extends Thread {
     //
     private static final String TAG = "DiscoverThread";
-    private static int BUFFER_LENGTH = 1024;
-    public static String MULTICAST_ADDRESS = "230.6.6.6";
+    private static final int BUFFER_LENGTH = 1024;
+    public static final String MULTICAST_ADDRESS = "230.6.6.6";
     private static final String ID_REQUEST = "RemoteDroid:AnyoneHome";
     private static final String ID_REQUEST_RESPONSE = "RemoteDroid:ImHome";
 
@@ -39,7 +40,7 @@ public class DiscoverThread extends Thread {
             this.sendIDRequest();
             this.waitForResponse();
         } catch (IOException e) {
-            Log.e(TAG, "Error sending announce", e);
+            Log.e(TAG, "IOException", e);
         }
     }
 
@@ -69,16 +70,15 @@ public class DiscoverThread extends Thread {
     //
 
     private void handleReceivedPacket(DatagramPacket packet) {
-        String data = new String(packet.getData());
-        //Log.d(TAG, "Got packet! data:"+data);
-        //Log.d(TAG, "IP:"+packet.getAddress().getHostAddress());
-        if (data.substring(0, ID_REQUEST_RESPONSE.length()).compareTo(ID_REQUEST_RESPONSE) == 0) {
+        String data = new String(packet.getData(), 0, packet.getLength(), Charset.defaultCharset());
+
+        if (data.equals(ID_REQUEST_RESPONSE)) {
             // We've received a response. Notify the listener
             this.listener.onAddressReceived(packet.getAddress());
         }
     }
 
-    public static interface DiscoverListener {
+    public interface DiscoverListener {
         void onAddressReceived(InetAddress address);
     }
 }

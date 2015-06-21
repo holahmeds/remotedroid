@@ -1,94 +1,49 @@
-import java.io.*;
-import java.net.*;
+import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.MulticastSocket;
+import java.nio.charset.Charset;
 
 public class DiscoverableThread extends Thread {
-	//
-	private static int BUFFER_LENGTH = 1024;
-	public static String MULTICAST_ADDRESS = "230.6.6.6";
+
+	private static final int BUFFER_LENGTH = 1024;
+	public static final String MULTICAST_ADDRESS = "230.6.6.6";
 	private static final String ID_REQUEST = "RemoteDroid:AnyoneHome";
 	private static final String ID_REQUEST_RESPONSE = "RemoteDroid:ImHome";
 	
 	//
 	private int port = 57111;
-	private MulticastSocket socket;
 
-	public DiscoverableThread() {
-		// TODO Auto-generated constructor stub
-	}
-	
 	public DiscoverableThread(int port) {
 		this.port = port;
 	}
-
-	public DiscoverableThread(Runnable target) {
-		super(target);
-		// TODO Auto-generated constructor stub
-	}
-
-	public DiscoverableThread(String name) {
-		super(name);
-		// TODO Auto-generated constructor stub
-	}
-
-	public DiscoverableThread(ThreadGroup group, Runnable target) {
-		super(group, target);
-		// TODO Auto-generated constructor stub
-	}
-
-	public DiscoverableThread(ThreadGroup group, String name) {
-		super(group, name);
-		// TODO Auto-generated constructor stub
-	}
-
-	public DiscoverableThread(Runnable target, String name) {
-		super(target, name);
-		// TODO Auto-generated constructor stub
-	}
-
-	public DiscoverableThread(ThreadGroup group, Runnable target, String name) {
-		super(group, target, name);
-		// TODO Auto-generated constructor stub
-	}
-
-	public DiscoverableThread(ThreadGroup group, Runnable target, String name,
-			long stackSize) {
-		super(group, target, name, stackSize);
-		// TODO Auto-generated constructor stub
-	}
-	
-	//
 	
 	public void run() {
 		try {
 			byte[] b = new byte[BUFFER_LENGTH];
 			DatagramPacket packet = new DatagramPacket(b, b.length);
-			this.socket = new MulticastSocket(this.port);
-			this.socket.joinGroup(InetAddress.getByName(MULTICAST_ADDRESS));
+			MulticastSocket socket = new MulticastSocket(this.port);
+			socket.joinGroup(InetAddress.getByName(MULTICAST_ADDRESS));
 			while (true) {
-				this.socket.receive(packet);
+				socket.receive(packet);
 				this.handlePacket(packet);
 			}
-		} catch (IOException e) {
-			
-		} catch (InterruptedException e) {
-			
+		} catch (IOException | InterruptedException e) {
+			e.printStackTrace();
 		}
 	}
 	
 	private void handlePacket(DatagramPacket packet) throws IOException, InterruptedException {
-		String data = new String(packet.getData());
-		System.out.println("Got data:"+data);
-		if (data.substring(0, ID_REQUEST.length()).equals(ID_REQUEST)) {
-			System.out.println("Request message!");
-			// we'll send a response!
+		String data = new String(packet.getData(), 0, packet.getLength(), Charset.defaultCharset());
+
+		if (data.equals(ID_REQUEST)) {
 			byte[] b = ID_REQUEST_RESPONSE.getBytes();
 			DatagramPacket p = new DatagramPacket(b, b.length);
 			p.setAddress(packet.getAddress());
-			p.setPort(this.port+1);
-			// wait half a second just in case.
-			Thread.sleep(500);
+			p.setPort(this.port + 1);
+
 			DatagramSocket outSocket = new DatagramSocket();
-			//outSocket.joinGroup(InetAddress.getByName(MULTICAST_ADDRESS));
 			outSocket.send(p);
 			outSocket.close();
 		}

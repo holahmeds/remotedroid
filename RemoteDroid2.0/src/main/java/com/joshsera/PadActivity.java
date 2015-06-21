@@ -144,7 +144,7 @@ public class PadActivity extends Activity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.show_prefs:
-                startActivity(new Intent(this, PreferenceActivity.class));
+                startActivity(new Intent(this, PadPreferences.class));
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -156,14 +156,14 @@ public class PadActivity extends Activity {
         super.onResume();
         // Setup accelerations
         mMouseSensitivityPower = 1
-                + Integer.parseInt(prefs.getString(PreferenceActivity.SENSITIVITY, "0")) / 100d;
+                + Integer.parseInt(prefs.getString(PadPreferences.SENSITIVITY, "0")) / 100d;
         mScrollStep = (sScrollStepMin - sScrollStepMax)
-                * (sScrollMaxSettingsValue - Integer.parseInt(prefs.getString(PreferenceActivity.SCROLL_SENSITIVITY, "50")))
+                * (sScrollMaxSettingsValue - Integer.parseInt(prefs.getString(PadPreferences.SCROLL_SENSITIVITY, "50")))
                 / sScrollMaxSettingsValue
                 + sScrollStepMax;
 
         Log.d(TAG, "mScrollStep=" + mScrollStep);
-        Log.d(TAG, "Settings.sensitivity=" + prefs.getString(PreferenceActivity.SENSITIVITY, "0"));
+        Log.d(TAG, "Settings.sensitivity=" + prefs.getString(PadPreferences.SENSITIVITY, "0"));
     }
 
     private void initTouchpad() {
@@ -225,7 +225,7 @@ public class PadActivity extends Activity {
                 // scrollX = 0;
                 scrollY = 0;
                 //
-                if (prefs.getBoolean(PreferenceActivity.TAP_TO_CLICK, true)
+                if (prefs.getBoolean(PadPreferences.TAP_TO_CLICK, true)
                         && (pointerCount == 1)) {
                     if (this.tapState == TAP_NONE) {
                         // first tap
@@ -252,12 +252,12 @@ public class PadActivity extends Activity {
                 //
                 break;
             case MotionEvent.ACTION_UP:
-                if (prefs.getBoolean(PreferenceActivity.TAP_TO_CLICK, true)
+                if (prefs.getBoolean(PadPreferences.TAP_TO_CLICK, true)
                         && (pointerCount == 1)) {
                     // it's a tap!
                     long now = System.currentTimeMillis();
                     long elapsed = now - this.lastTap;
-                    if (elapsed <= Integer.parseInt(prefs.getString(PreferenceActivity.TAP_TIME, "200"))) {
+                    if (elapsed <= Integer.parseInt(prefs.getString(PadPreferences.TAP_TIME, "200"))) {
                         if (this.tapState == TAP_NONE) {
                             this.lastTap = now;
                             //
@@ -266,7 +266,7 @@ public class PadActivity extends Activity {
                                 public void run() {
                                     firstTapUp();
                                 }
-                            }, 0, Integer.parseInt(prefs.getString(PreferenceActivity.TAP_TIME, "200")));
+                            }, 0, Integer.parseInt(prefs.getString(PadPreferences.TAP_TIME, "200")));
                         } else if (this.tapState == TAP_SECOND) {
                             // double-click
                             this.tapTimer = new Timer();
@@ -347,7 +347,7 @@ public class PadActivity extends Activity {
                     dir = -1;
                 }
 
-                if (prefs.getBoolean(PreferenceActivity.SCROLL_INVERTED, false)) {
+                if (prefs.getBoolean(PadPreferences.SCROLL_INVERTED, false)) {
                     dir = -dir;
                 }
 
@@ -465,33 +465,9 @@ public class PadActivity extends Activity {
                     this.leftToggle = !this.leftToggle;
                 }
                 break;
-            case MotionEvent.ACTION_MOVE:
-                moveMouseWithSecondFinger(ev);
-                break;
         }
         //
         return true;
-    }
-
-    private void moveMouseWithSecondFinger(MotionEvent ev) {
-        int pointerCount = ev.getPointerCount();
-
-        // if it is a multitouch move event
-        if (pointerCount == 2) {
-            float x = ev.getX();
-            float y = ev.getY();
-
-            if (lastPointerCount == 2) {
-                float xMove = x - this.xHistory;
-                float yMove = y - this.yHistory;
-
-                this.sendMouseEvent(2, xMove, yMove);
-            }
-            this.xHistory = x;
-            this.yHistory = y;
-        }
-
-        lastPointerCount = pointerCount;
     }
 
     private void leftButtonDown() {
@@ -546,9 +522,6 @@ public class PadActivity extends Activity {
                     }
                     this.rightToggle = !this.rightToggle;
                 }
-                break;
-            case MotionEvent.ACTION_MOVE:
-                moveMouseWithSecondFinger(ev);
                 break;
         }
         //

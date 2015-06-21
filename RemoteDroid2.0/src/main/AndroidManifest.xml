@@ -30,7 +30,7 @@
             android:parentActivityName=".RemoteDroid"
             android:screenOrientation="portrait" />
 
-        <activity android:name=".PreferenceActivity"/>
+        <activity android:name=".PadPreferences"/>
 
     </application>
 </manifest> 

@@ -10,7 +10,7 @@ import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.InetAddress;
+import java.net.SocketException;
 import java.net.UnknownHostException;
 
 import javax.imageio.ImageIO;
@@ -29,22 +29,18 @@ public class AppFrame extends JFrame {
      */
     private static final long serialVersionUID = 1L;
 
-    private Border border = new EmptyBorder(5, 5, 5, 5);
-    private String appName = "RemoteDroid Server";
+    private static final Border BORDER = new EmptyBorder(5, 5, 5, 5);
+    private static final String APP_NAME = "RemoteDroid Server";
 
     public AppFrame() {
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        this.setTitle("RemoteDroid Server");
+        this.setTitle(APP_NAME);
 
         // get local IP
         String sHost;
         try {
-            InetAddress localAddr = InetAddress.getLocalHost();
-            if (localAddr.isLoopbackAddress()) {
-                localAddr = LinuxInetAddress.getLocalHost();
-            }
-            sHost = localAddr.getHostAddress();
-        } catch (UnknownHostException ex) {
+            sHost = InetAddressUtil.getLocalHost().getHostAddress();
+        } catch (UnknownHostException | SocketException ex) {
             sHost = "Error finding local IP.";
         }
 
@@ -52,13 +48,13 @@ public class AppFrame extends JFrame {
         Image imLogo = getImage("icon.gif");
 
         JPanel contentPane = new JPanel();
-        contentPane.setBorder(border);
+        contentPane.setBorder(BORDER);
         setContentPane(contentPane);
         contentPane.setLayout(new BorderLayout(5, 5));
         setIconImage(imLogo);
 
         JPanel panel = new JPanel();
-        panel.setBorder(border);
+        panel.setBorder(BORDER);
         contentPane.add(panel, BorderLayout.NORTH);
         panel.setLayout(new BorderLayout(5, 5));
 
@@ -66,7 +62,7 @@ public class AppFrame extends JFrame {
         lblLogo.setIcon(new ImageIcon(imLogo));
         panel.add(lblLogo, BorderLayout.WEST);
 
-        JLabel lbAppName = new JLabel(appName);
+        JLabel lbAppName = new JLabel(APP_NAME);
         panel.add(lbAppName, BorderLayout.CENTER);
 
         JLabel lbtextLines = new JLabel(textLines);
