@@ -78,11 +78,6 @@ public class PadActivity extends Activity {
 
     private float mScrollStep;// = 12f;
 
-    /**
-     * Cached multitouch information
-     */
-    private boolean mIsMultitouchEnabled;
-
     private SharedPreferences prefs;
 
     /*
@@ -93,12 +88,6 @@ public class PadActivity extends Activity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        /**
-         * Caches information and forces WrappedMotionEvent class to load at
-         * Activity startup (avoid initial lag on touchpad).
-         */
-        this.mIsMultitouchEnabled = WrappedMotionEvent.isMutitouchCapable();
 
         prefs = PreferenceManager.getDefaultSharedPreferences(this);
 
@@ -229,10 +218,7 @@ public class PadActivity extends Activity {
         float xMove = 0f;
         float yMove = 0f;
 
-        int pointerCount = 1;
-        if (mIsMultitouchEnabled) {
-            pointerCount = WrappedMotionEvent.getPointerCount(ev);
-        }
+        int pointerCount = ev.getPointerCount();
 
         switch (ev.getAction()) {
             case MotionEvent.ACTION_DOWN:
@@ -324,17 +310,11 @@ public class PadActivity extends Activity {
                     // multi-touch scroll
                     type = -1;
 
-                    int pointer0 = WrappedMotionEvent.getPointerId(ev, 0);
-                    int pointer1 = WrappedMotionEvent.getPointerId(ev, 1);
-
-                    // float posX = WrappedMotionEvent.getX(ev, pointer0);
-                    float posY = WrappedMotionEvent.getY(ev, pointer0);
+                    float posY = ev.getY(0);
 
                     // only consider the second pointer if I had a previous history
                     if (lastPointerCount == 2) {
-                        // posX += WrappedMotionEvent.getX(ev, pointer1);
-                        // posX /= 2;
-                        posY += WrappedMotionEvent.getY(ev, pointer1);
+                        posY += ev.getY(1);
                         posY /= 2;
 
                         // xMove = posX - this.xHistory;
@@ -343,9 +323,7 @@ public class PadActivity extends Activity {
                         // xMove = posX - this.xHistory;
                         yMove = posY - this.yHistory;
 
-                        // posX += WrappedMotionEvent.getX(ev, pointer1);
-                        // posX /= 2;
-                        posY += WrappedMotionEvent.getY(ev, pointer1);
+                        posY += ev.getY(1);
                         posY /= 2;
                     }
 
@@ -496,17 +474,12 @@ public class PadActivity extends Activity {
     }
 
     private void moveMouseWithSecondFinger(MotionEvent ev) {
-        if (!mIsMultitouchEnabled) {
-            return;
-        }
-        int pointerCount = WrappedMotionEvent.getPointerCount(ev);
+        int pointerCount = ev.getPointerCount();
+
         // if it is a multitouch move event
         if (pointerCount == 2) {
-            // int pointer0 = ev.getPointerId(0);
-            int pointer1 = WrappedMotionEvent.getPointerId(ev, 1);
-
-            float x = WrappedMotionEvent.getX(ev, pointer1);
-            float y = WrappedMotionEvent.getY(ev, pointer1);
+            float x = ev.getX();
+            float y = ev.getY();
 
             if (lastPointerCount == 2) {
                 float xMove = x - this.xHistory;
@@ -517,6 +490,7 @@ public class PadActivity extends Activity {
             this.xHistory = x;
             this.yHistory = y;
         }
+
         lastPointerCount = pointerCount;
     }
 
