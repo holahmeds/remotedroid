@@ -43,12 +43,10 @@ public class PadActivity extends Activity {
     private Handler handler = new Handler();
     //
     private FrameLayout flLeftButton;
-    private boolean leftToggle = false;
     private Runnable rLeftDown;
     private Runnable rLeftUp;
     //
     private FrameLayout flRightButton;
-    private boolean rightToggle = false;
     private Runnable rRightDown;
     private Runnable rRightUp;
 
@@ -57,8 +55,6 @@ public class PadActivity extends Activity {
     //
     private int lastPointerCount = 0;
 
-    // toggles
-    private boolean toggleButton = false;
     // tap to click
     private long lastTap = 0;
     private int tapState = TAP_NONE;
@@ -368,7 +364,6 @@ public class PadActivity extends Activity {
     }
 
     private void firstTapUp() {
-        this.leftToggle = false;
         if (this.tapState == TAP_NONE) {
             // single click
             // counts as a tap
@@ -390,7 +385,6 @@ public class PadActivity extends Activity {
     }
 
     private void secondTapUp() {
-        this.leftToggle = false;
         if (this.tapState == TAP_SECOND) {
             // mouse up
             this.leftButtonUp();
@@ -443,27 +437,10 @@ public class PadActivity extends Activity {
     private boolean onLeftTouch(MotionEvent ev) {
         switch (ev.getAction()) {
             case MotionEvent.ACTION_DOWN:
-                //
-                if (!this.toggleButton) {
-                    if (this.leftToggle) {
-                        this.leftButtonUp();
-                        this.leftToggle = false;
-                    }
-                    this.leftButtonDown();
-                }
+                this.leftButtonDown();
                 break;
             case MotionEvent.ACTION_UP:
-                //
-                if (!this.toggleButton) {
-                    this.leftButtonUp();
-                } else {
-                    if (this.leftToggle) {
-                        this.leftButtonUp();
-                    } else {
-                        this.leftButtonDown();
-                    }
-                    this.leftToggle = !this.leftToggle;
-                }
+                this.leftButtonUp();
                 break;
         }
         //
@@ -499,29 +476,10 @@ public class PadActivity extends Activity {
     private boolean onRightTouch(MotionEvent ev) {
         switch (ev.getAction()) {
             case MotionEvent.ACTION_DOWN:
-                //
-                if (!this.toggleButton) {
-                    if (this.rightToggle) {
-                        this.rightButtonUp();
-                        this.rightToggle = false;
-                    }
-                    this.rightToggle = false;
-                    this.rightButtonDown();
-                }
+                this.rightButtonDown();
                 break;
             case MotionEvent.ACTION_UP:
-                //
-                if (!this.toggleButton) {
-                    this.rightButtonUp();
-                } else {
-                    // toggle magic!
-                    if (this.rightToggle) {
-                        this.rightButtonUp();
-                    } else {
-                        this.rightButtonDown();
-                    }
-                    this.rightToggle = !this.rightToggle;
-                }
+                this.rightButtonUp();
                 break;
         }
         //
