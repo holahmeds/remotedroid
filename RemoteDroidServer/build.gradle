@@ -1,0 +1,11 @@
+apply plugin: 'application'
+
+mainClassName = "RemoteDroidServer"
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile 'com.illposed.osc:javaosc-core:0.3'
+}

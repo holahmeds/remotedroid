@@ -1,6 +1,5 @@
 bin/
 build/
-build.gradle
 .gradle/
 lint.xml
 .settings/

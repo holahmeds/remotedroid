@@ -1,0 +1,25 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:1.2.3'
+    }
+}
+apply plugin: 'com.android.application'
+
+dependencies {
+    repositories {
+        mavenCentral()
+    }
+    compile 'com.illposed.osc:javaosc-core:0.3'
+}
+
+android {
+    compileSdkVersion 'android-22'
+    buildToolsVersion '22.0.1'
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_7
+        targetCompatibility JavaVersion.VERSION_1_7
+    }
+}
