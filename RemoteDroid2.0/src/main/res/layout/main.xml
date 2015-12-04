@@ -17,7 +17,7 @@
             android:id="@+id/etIp"
             android:layout_width="wrap_content"
             android:layout_weight="1"
-            android:inputType="number" />
+            android:inputType="phone" />
 
         <Button
             android:layout_width="wrap_content"
@@ -31,14 +31,14 @@
         android:id="@+id/tvRecentHosts"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/txt_recentlyUsedHosts"
+        android:text="@string/txt_saved_hosts"
         android:textStyle="bold"
         android:gravity="center_horizontal"
         android:padding="10dp" />
 
     <ListView
         android:id="@+id/lvHosts"
-        android:layout_width="wrap_content"
+        android:layout_width="fill_parent"
         android:layout_height="wrap_content" />
 
 </LinearLayout>

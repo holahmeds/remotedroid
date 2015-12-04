@@ -13,9 +13,7 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
 
-import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -23,21 +21,14 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 
-/*
- * TODO: DNS lookup
- */
-
 public class RemoteDroid extends Activity {
     private static final String TAG = "RemoteDroid";
     private static final String SAVED_HOSTS_FILE = "saved_hosts";
 
     private EditText tbIp;
-    private ListView lvHosts;
 
-    private DiscoverThread discover;
-    private ArrayList<InetAddress> hostlist;
-
-    private ArrayList<SavedHost> savedHosts;
+    ArrayList<Host> hosts = null;
+    private ArrayAdapter<Host> hostAdapter;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -51,77 +42,46 @@ public class RemoteDroid extends Activity {
         but.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 try {
-                    new ConnectAsync().execute(InetAddress.getByName(tbIp.getText().toString()));
+                    ConnectAsync task = new ConnectAsync();
+                    task.execute(InetAddress.getByName(tbIp.getText().toString()));
                 } catch (UnknownHostException e) {
                     Toast.makeText(RemoteDroid.this, getText(R.string.toast_invalidIP), Toast.LENGTH_LONG).show();
                 }
             }
         });
 
-        // discover some servers
-        this.hostlist = new ArrayList<>();
-        lvHosts = (ListView) findViewById(R.id.lvHosts);
-        lvHosts.setAdapter(
-                new ArrayAdapter<>(this, R.layout.savedhost, R.id.hostEntry, hostlist));
-        lvHosts.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            public void onItemClick(AdapterView<?> adapter, View v, int position, long id) {
-                new ConnectAsync().execute(hostlist.get(position));
-            }
-        });
-
         // Read saved hosts
         try {
             ObjectInputStream ois = new ObjectInputStream(openFileInput(SAVED_HOSTS_FILE));
-            savedHosts = (ArrayList<SavedHost>) ois.readObject();
+            hosts = (ArrayList<Host>) ois.readObject();
         } catch (FileNotFoundException e) {
             Log.d(TAG, "No saved hosts file found. Will create one when exiting");
-            savedHosts = new ArrayList<>();
-        } catch (IOException | ClassNotFoundException e) {
+        } catch (Exception e) {
             Log.e(TAG, "Error reading saved hosts.", e);
+        } finally {
+            if (hosts == null) {
+                hosts = new ArrayList<>();
+            }
         }
-    }
 
-    /**
-     * App starts displaying things
-     */
-    public void onResume() {
-        super.onResume();
-        this.discover = new DiscoverThread(new DiscoverThread.DiscoverListener() {
+        this.hostAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, hosts);
+
+        ListView hostListView = (ListView) findViewById(R.id.lvHosts);
+        hostListView.setAdapter(hostAdapter);
+        hostListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
-            public void onAddressReceived(InetAddress address) {
-                if (!hostlist.contains(address)) {
-                    hostlist.add(address);
-                    Log.d(TAG, "Got host back, " + address);
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            ((ArrayAdapter) lvHosts.getAdapter()).notifyDataSetChanged();
-                        }
-                    });
-                }
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                new ConnectAsync().execute(hostAdapter.getItem(position).getAddress());
             }
         });
-        this.discover.start();
-    }
-
-
-    /**
-     * App goes into background
-     */
-    public void onPause() {
-        super.onPause();
-        this.discover.closeSocket();
     }
 
     @Override
     protected void onDestroy() {
         // Write saved hosts
         try {
-            File f = new File(getFilesDir(), SAVED_HOSTS_FILE);
-            if (!f.exists()) f.createNewFile();
-
-            ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(f));
-            oos.writeObject(savedHosts);
+            ObjectOutputStream oos = new ObjectOutputStream(openFileOutput(SAVED_HOSTS_FILE, MODE_PRIVATE));
+            oos.writeObject(hosts);
             oos.close();
         } catch (IOException e) {
             e.printStackTrace();
@@ -136,6 +96,7 @@ public class RemoteDroid extends Activity {
      */
     private class ConnectAsync extends AsyncTask<InetAddress, Void, Boolean> {
         private InetAddress addr;
+        private String hostName;
 
         @Override
         protected Boolean doInBackground(InetAddress... params) {
@@ -143,7 +104,7 @@ public class RemoteDroid extends Activity {
 
             try {
                 if (addr.isReachable(500)) {
-                    savedHosts.add(new SavedHost(addr.getHostName(), addr));
+                    hostName = addr.getHostName();
                     return true;
                 }
             } catch (IOException e) {
@@ -156,6 +117,12 @@ public class RemoteDroid extends Activity {
         @Override
         protected void onPostExecute(Boolean reachable) {
             if (reachable) {
+                Host h = new Host(hostName, addr);
+                if (!hosts.contains(h)) {
+                    hosts.add(h);
+                    hostAdapter.add(h);
+                }
+
                 Intent i = new Intent(RemoteDroid.this, PadActivity.class);
                 i.putExtra(PadActivity.CONNECT_IP, addr);
                 RemoteDroid.this.startActivity(i);

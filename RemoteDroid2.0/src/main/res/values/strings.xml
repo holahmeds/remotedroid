@@ -12,11 +12,13 @@
     <string name="txt_advanced">Advanced</string>
     <string name="txt_keyboard">Keyboard</string>
 
-    <string name="txt_recentlyUsedHosts">Visible Hosts:</string>
+    <string name="txt_saved_hosts">Saved Hosts</string>
 
     <string name="pref_tapclick">tapclick</string>
     <string name="pref_taptime">taptime</string>
     <string name="pref_sensitivity">sensitivity</string>
     <string name="pref_scrollSensitivity">scrollSensitivity</string>
     <string name="pref_scrollInverted">scrollInverted</string>
+    <string name="txt_hostname">Hostname</string>
+    <string name="txt_ip_address">IP Address</string>
 </resources>

@@ -92,9 +92,6 @@ public class OSCWorld {
                 // hack for robot class bug.
                 this.scrollMod = 1;
 			}
-			// discoverable stuff
-            DiscoverableThread discoverable = new DiscoverableThread(OSCPort.defaultSCOSCPort() + 1);
-            discoverable.start();
         } catch (Exception ex) {
             ex.printStackTrace();
         }
