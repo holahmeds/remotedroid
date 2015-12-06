@@ -1,12 +1,12 @@
 package com.joshsera;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.StrictMode;
 import android.preference.PreferenceManager;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -27,7 +27,7 @@ import java.util.TimerTask;
  * @author jsera
  */
 
-public class PadActivity extends Activity {
+public class PadActivity extends AppCompatActivity {
     public static final String CONNECT_IP = "com.remotedroid.CONNECT_IP";
     //
     private static final int TAP_NONE = 0;

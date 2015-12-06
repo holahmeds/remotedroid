@@ -1,9 +1,10 @@
 package com.joshsera;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -21,9 +22,11 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 
-public class RemoteDroid extends Activity {
+public class RemoteDroid extends AppCompatActivity {
     private static final String TAG = "RemoteDroid";
     private static final String SAVED_HOSTS_FILE = "saved_hosts";
+
+    private static final int NEW_HOST_REQUEST = 0;
 
     private EditText tbIp;
 
@@ -47,6 +50,15 @@ public class RemoteDroid extends Activity {
                 } catch (UnknownHostException e) {
                     Toast.makeText(RemoteDroid.this, getText(R.string.toast_invalidIP), Toast.LENGTH_LONG).show();
                 }
+            }
+        });
+
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent i = new Intent(RemoteDroid.this, NewHostActivity.class);
+                startActivityForResult(i, NEW_HOST_REQUEST);
             }
         });
 
@@ -90,6 +102,18 @@ public class RemoteDroid extends Activity {
         super.onDestroy();
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == NEW_HOST_REQUEST) {
+            if (resultCode == RESULT_OK) {
+                Host host = (Host) data.getSerializableExtra(NewHostActivity.NEW_HOST);
+                hostAdapter.add(host);
+            }
+        } else {
+            super.onActivityResult(requestCode, resultCode, data);
+        }
+    }
+
     /**
      * Starts PadActivity with given InetAddress if it is reachable.
      * If more than one address is given, only the first is used and the rest are ignored.
@@ -119,7 +143,6 @@ public class RemoteDroid extends Activity {
             if (reachable) {
                 Host h = new Host(hostName, addr);
                 if (!hosts.contains(h)) {
-                    hosts.add(h);
                     hostAdapter.add(h);
                 }
 

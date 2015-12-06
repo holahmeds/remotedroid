@@ -13,6 +13,7 @@ dependencies {
         mavenCentral()
     }
     compile 'com.illposed.osc:javaosc-core:0.3'
+    compile 'com.android.support:design:23.1.1'
 }
 
 android {
