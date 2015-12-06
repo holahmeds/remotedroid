@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="RemoteDroidStyle" parent="Theme.AppCompat">
+    <style name="RemoteDroidStyle" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="android:colorAccent">#00FF00</item>
     </style>
 </resources>

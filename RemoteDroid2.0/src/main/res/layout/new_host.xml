@@ -1,41 +1,48 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?android:attr/colorPrimary"
+        android:minHeight="?android:attr/actionBarSize" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/txt_hostname"
+        android:layout_gravity="start"
         android:labelFor="@+id/hostname"
-        android:layout_gravity="start" />
+        android:text="@string/txt_hostname" />
 
     <EditText
+        android:id="@+id/hostname"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/hostname"
         android:inputType="text" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/txt_ip_address"
+        android:layout_gravity="start"
         android:labelFor="@+id/address"
-        android:layout_gravity="start" />
+        android:text="@string/txt_ip_address" />
 
     <EditText
+        android:id="@+id/address"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/address"
         android:inputType="phone" />
 
     <Button
+        android:id="@+id/saveButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/txt_save"
-        android:id="@+id/saveButton"
-        android:layout_gravity="end" />
+        android:layout_gravity="end"
+        android:text="@string/txt_save" />
 
 </LinearLayout>

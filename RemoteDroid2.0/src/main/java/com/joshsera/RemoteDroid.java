@@ -13,6 +13,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
+import android.widget.Toolbar;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -37,6 +38,10 @@ public class RemoteDroid extends AppCompatActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
+
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setActionBar(toolbar);
+        toolbar.setTitle(R.string.app_name);
 
         tbIp = (EditText) findViewById(R.id.etIp);
 
