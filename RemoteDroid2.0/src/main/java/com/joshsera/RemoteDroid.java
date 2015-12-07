@@ -1,5 +1,7 @@
 package com.joshsera;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -29,8 +31,6 @@ public class RemoteDroid extends AppCompatActivity {
 
     private static final int NEW_HOST_REQUEST = 0;
 
-    private EditText tbIp;
-
     ArrayList<Host> hosts = null;
     private ArrayAdapter<Host> hostAdapter;
 
@@ -43,10 +43,25 @@ public class RemoteDroid extends AppCompatActivity {
         setActionBar(toolbar);
         toolbar.setTitle(R.string.app_name);
 
-        tbIp = (EditText) findViewById(R.id.etIp);
+        // Read saved hosts
+        try {
+            ObjectInputStream ois = new ObjectInputStream(openFileInput(SAVED_HOSTS_FILE));
+            hosts = (ArrayList<Host>) ois.readObject();
+        } catch (FileNotFoundException e) {
+            Log.d(TAG, "No saved hosts file found. Will create one when exiting");
+        } catch (Exception e) {
+            Log.e(TAG, "Error reading saved hosts.", e);
+        } finally {
+            if (hosts == null) {
+                hosts = new ArrayList<>();
+            }
+        }
+
+        this.hostAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, hosts);
 
         // set some listeners
         Button but = (Button) this.findViewById(R.id.btnConnect);
+        final EditText tbIp = (EditText) findViewById(R.id.etIp);
         but.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 try {
@@ -67,28 +82,31 @@ public class RemoteDroid extends AppCompatActivity {
             }
         });
 
-        // Read saved hosts
-        try {
-            ObjectInputStream ois = new ObjectInputStream(openFileInput(SAVED_HOSTS_FILE));
-            hosts = (ArrayList<Host>) ois.readObject();
-        } catch (FileNotFoundException e) {
-            Log.d(TAG, "No saved hosts file found. Will create one when exiting");
-        } catch (Exception e) {
-            Log.e(TAG, "Error reading saved hosts.", e);
-        } finally {
-            if (hosts == null) {
-                hosts = new ArrayList<>();
-            }
-        }
-
-        this.hostAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, hosts);
-
-        ListView hostListView = (ListView) findViewById(R.id.lvHosts);
+        final ListView hostListView = (ListView) findViewById(R.id.lvHosts);
         hostListView.setAdapter(hostAdapter);
         hostListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 new ConnectAsync().execute(hostAdapter.getItem(position).getAddress());
+            }
+        });
+        final String[] longClickOptions = {"Delete"};
+        hostListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, final int position, long id) {
+                AlertDialog dialog = new AlertDialog.Builder(RemoteDroid.this).setItems(longClickOptions, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        switch (which) {
+                            case 0:
+                                Host h = hostAdapter.getItem(position);
+                                hostAdapter.remove(h);
+                                break;
+                        }
+                    }
+                }).create();
+                dialog.show();
+                return true;
             }
         });
     }
