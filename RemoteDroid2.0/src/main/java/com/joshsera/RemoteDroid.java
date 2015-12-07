@@ -29,7 +29,7 @@ public class RemoteDroid extends AppCompatActivity {
     private static final String TAG = "RemoteDroid";
     private static final String SAVED_HOSTS_FILE = "saved_hosts";
 
-    private static final int NEW_HOST_REQUEST = 0;
+    private static final int EDIT_HOST_REQUEST = 0;
 
     ArrayList<Host> hosts = null;
     private ArrayAdapter<Host> hostAdapter;
@@ -77,8 +77,8 @@ public class RemoteDroid extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent i = new Intent(RemoteDroid.this, NewHostActivity.class);
-                startActivityForResult(i, NEW_HOST_REQUEST);
+                Intent i = new Intent(RemoteDroid.this, EditHostActivity.class);
+                startActivityForResult(i, EDIT_HOST_REQUEST);
             }
         });
 
@@ -90,17 +90,22 @@ public class RemoteDroid extends AppCompatActivity {
                 new ConnectAsync().execute(hostAdapter.getItem(position).getAddress());
             }
         });
-        final String[] longClickOptions = {"Delete"};
+        final String[] longClickOptions = {"Delete", "Edit"};
         hostListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, final int position, long id) {
                 AlertDialog dialog = new AlertDialog.Builder(RemoteDroid.this).setItems(longClickOptions, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
+                        Host h = hostAdapter.getItem(position);
                         switch (which) {
                             case 0:
-                                Host h = hostAdapter.getItem(position);
                                 hostAdapter.remove(h);
+                                break;
+                            case 1:
+                                Intent i = new Intent(RemoteDroid.this, EditHostActivity.class);
+                                i.putExtra(EditHostActivity.HOST, h);
+                                startActivityForResult(i, EDIT_HOST_REQUEST);
                                 break;
                         }
                     }
@@ -127,10 +132,12 @@ public class RemoteDroid extends AppCompatActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == NEW_HOST_REQUEST) {
+        if (requestCode == EDIT_HOST_REQUEST) {
             if (resultCode == RESULT_OK) {
-                Host host = (Host) data.getSerializableExtra(NewHostActivity.NEW_HOST);
-                hostAdapter.add(host);
+                Host host = (Host) data.getSerializableExtra(EditHostActivity.HOST);
+                hostAdapter.remove(host);
+                Host editedHost = (Host) data.getSerializableExtra(EditHostActivity.EDITED_HOST);
+                hostAdapter.add(editedHost);
             }
         } else {
             super.onActivityResult(requestCode, resultCode, data);

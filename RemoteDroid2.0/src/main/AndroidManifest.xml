@@ -36,7 +36,7 @@
 
         <activity android:name=".PadPreferences" />
 
-        <activity android:name=".NewHostActivity" />
+        <activity android:name=".EditHostActivity" />
     </application>
 
 </manifest>

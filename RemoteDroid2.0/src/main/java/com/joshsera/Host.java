@@ -15,17 +15,8 @@ public class Host implements Serializable {
     public String getHostname() {
         return hostname;
     }
-
-    public void setHostname(String hostname) {
-        this.hostname = hostname;
-    }
-
     public InetAddress getAddress() {
         return address;
-    }
-
-    public void setAddress(InetAddress address) {
-        this.address = address;
     }
 
     @Override
@@ -39,7 +30,7 @@ public class Host implements Serializable {
             return false;
         } else {
             Host h = (Host) o;
-            return h.hostname == this.hostname && h.address == this.address;
+            return h.hostname.equals(this.hostname) && h.address.equals(this.address);
         }
     }
 
