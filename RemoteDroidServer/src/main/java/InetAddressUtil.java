@@ -6,7 +6,10 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 
-public class InetAddressUtil {
+final class InetAddressUtil {
+
+    private InetAddressUtil() {
+    }
 
     /**
      * Returns an InetAddress representing the address of the localhost.
@@ -20,13 +23,16 @@ public class InetAddressUtil {
      */
     public static InetAddress getLocalHost() throws SocketException, UnknownHostException {
         InetAddress localHost = InetAddress.getLocalHost();
-        if (!localHost.isLoopbackAddress()) return localHost;
+        if (!localHost.isLoopbackAddress()) {
+            return localHost;
+        }
 
-        ArrayList<InetAddress> addrs = getAllLocalUsingNetworkInterface();
+        ArrayList<InetAddress> addrs = InetAddressUtil.getAllLocalUsingNetworkInterface();
         for (InetAddress addr : addrs) {
             // ensure IPv4
-            if (!addr.isLoopbackAddress() && addr instanceof Inet4Address)
+            if (!addr.isLoopbackAddress() && (addr instanceof Inet4Address)) {
                 return addr;
+            }
         }
 
         return localHost;
@@ -45,7 +51,8 @@ public class InetAddressUtil {
 
         while (interfaces.hasMoreElements()) {
             NetworkInterface ni = interfaces.nextElement();
-            for (Enumeration<InetAddress> e2 = ni.getInetAddresses(); e2.hasMoreElements(); ) {
+            Enumeration<InetAddress> e2 = ni.getInetAddresses();
+            while (e2.hasMoreElements()) {
                 addresses.add(e2.nextElement());
             }
         }

@@ -1,15 +1,20 @@
-/**
- * TODO: add mouse sensitivity scroller
- */
+import java.awt.AWTException;
+import java.net.SocketException;
 
+final class RemoteDroidServer {
 
-public class RemoteDroidServer {
+    private RemoteDroidServer() {
+    }
 
     public static void main(String[] args) {
         AppFrame frame = new AppFrame();
-        frame.setVisible(true);
-
         OSCWorld world = new OSCWorld();
-        world.onEnter();
+        try {
+            world.onEnter();
+            frame.setVisible(true);
+        } catch (AWTException | SocketException e) {
+            System.out.println("Error starting app.");
+            e.printStackTrace();
+        }
     }
 }

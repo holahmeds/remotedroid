@@ -3,42 +3,45 @@ package com.joshsera;
 import java.io.Serializable;
 import java.net.InetAddress;
 
-public class Host implements Serializable {
-    private String hostname;
-    private InetAddress address;
+class Host implements Serializable {
+    private static final long serialVersionUID = 2603465075386381805L;
 
-    public Host(String s, InetAddress a) {
-        hostname = s;
-        address = a;
+    private final String hostname;
+    private final InetAddress address;
+
+    Host(String s, InetAddress a) {
+        super();
+        this.hostname = s;
+        this.address = a;
     }
 
     public String getHostname() {
-        return hostname;
+        return this.hostname;
     }
     public InetAddress getAddress() {
-        return address;
+        return this.address;
     }
 
     @Override
     public String toString() {
-        return getHostname();
+        return this.hostname + " ("  + this.address + ')';
     }
 
     @Override
     public boolean equals(Object o) {
-        if (o == null || !(o instanceof Host)) {
-            return false;
-        } else {
+        if (o instanceof Host) {
             Host h = (Host) o;
             return h.hostname.equals(this.hostname) && h.address.equals(this.address);
+        } else {
+            return false;
         }
     }
 
     @Override
     public int hashCode() {
         int result = 17;
-        result = result * 31 + hostname.hashCode();
-        result = result * 31 + address.hashCode();
+        result = (result * 31) + this.hostname.hashCode();
+        result = (result * 31) + this.address.hashCode();
         return result;
     }
 }

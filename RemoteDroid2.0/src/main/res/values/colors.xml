@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <color name="accent_material_dark" tools:override="true">#80cbc4</color>
-    <color name="primary_material_dark" tools:override="true">#4caf50</color>
-    <color name="primary_material_light" tools:override="true">#4caf50</color>
-    <color name="accent_material_light" tools:override="true">#64dd17</color>
+    <color name="accent_material_dark" tools:override="true" tools:ignore="UnusedResources">#80cbc4</color>
+    <color name="primary_material_dark" tools:override="true" tools:ignore="UnusedResources">#4caf50</color>
+    <color name="primary_material_light" tools:override="true" tools:ignore="UnusedResources">#4caf50</color>
+    <color name="accent_material_light" tools:override="true" tools:ignore="UnusedResources">#64dd17</color>
 </resources>

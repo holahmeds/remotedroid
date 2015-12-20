@@ -1,6 +1,8 @@
 package com.joshsera;
 
+import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
@@ -31,63 +33,71 @@ public class RemoteDroid extends AppCompatActivity {
 
     private static final int EDIT_HOST_REQUEST = 0;
 
-    ArrayList<Host> hosts = null;
+    private ArrayList<Host> hosts;
     private ArrayAdapter<Host> hostAdapter;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.main);
+        this.setContentView(R.layout.main);
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setActionBar(toolbar);
+        Toolbar toolbar = (Toolbar) this.findViewById(R.id.toolbar);
+        this.setActionBar(toolbar);
         toolbar.setTitle(R.string.app_name);
 
         // Read saved hosts
-        try {
-            ObjectInputStream ois = new ObjectInputStream(openFileInput(SAVED_HOSTS_FILE));
-            hosts = (ArrayList<Host>) ois.readObject();
+        try (ObjectInputStream ois = new ObjectInputStream(this.openFileInput(RemoteDroid.SAVED_HOSTS_FILE))) {
+            // Reading from a private file we created. We know it contains only an ArrayList<Host>
+            @SuppressWarnings("unchecked")
+            ArrayList<Host> h = (ArrayList<Host>) ois.readObject();
+
+            this.hosts = h;
         } catch (FileNotFoundException e) {
-            Log.d(TAG, "No saved hosts file found. Will create one when exiting");
-        } catch (Exception e) {
-            Log.e(TAG, "Error reading saved hosts.", e);
+            Log.d(RemoteDroid.TAG, "No saved hosts file found. Will create one when exiting", e);
+        } catch (ClassNotFoundException | IOException e) {
+            Log.e(RemoteDroid.TAG, "Error reading saved hosts.", e);
         } finally {
-            if (hosts == null) {
-                hosts = new ArrayList<>();
+            if (this.hosts == null) {
+                this.hosts = new ArrayList<>();
             }
         }
 
-        this.hostAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, hosts);
+        this.hostAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, this.hosts);
 
         // set some listeners
         Button but = (Button) this.findViewById(R.id.btnConnect);
-        final EditText tbIp = (EditText) findViewById(R.id.etIp);
+        final EditText tbIp = (EditText) this.findViewById(R.id.etIp);
         but.setOnClickListener(new View.OnClickListener() {
+            @Override
             public void onClick(View v) {
                 try {
+                    String addr = tbIp.getText().toString();
+                    Host h = new Host(addr, InetAddress.getByName(addr));
+
                     ConnectAsync task = new ConnectAsync();
-                    task.execute(InetAddress.getByName(tbIp.getText().toString()));
+                    task.execute(h);
                 } catch (UnknownHostException e) {
-                    Toast.makeText(RemoteDroid.this, getText(R.string.toast_invalidIP), Toast.LENGTH_LONG).show();
+                    Toast.makeText(RemoteDroid.this, R.string.toast_invalidIP, Toast.LENGTH_LONG).show();
+                    Log.d(RemoteDroid.TAG, "Unknown host", e);
                 }
             }
         });
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        FloatingActionButton fab = (FloatingActionButton) this.findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent i = new Intent(RemoteDroid.this, EditHostActivity.class);
-                startActivityForResult(i, EDIT_HOST_REQUEST);
+                Intent intent = new Intent(RemoteDroid.this, EditHostActivity.class);
+                RemoteDroid.this.startActivityForResult(intent, RemoteDroid.EDIT_HOST_REQUEST);
             }
         });
 
-        final ListView hostListView = (ListView) findViewById(R.id.lvHosts);
-        hostListView.setAdapter(hostAdapter);
+        final ListView hostListView = (ListView) this.findViewById(R.id.lvHosts);
+        hostListView.setAdapter(this.hostAdapter);
         hostListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                new ConnectAsync().execute(hostAdapter.getItem(position).getAddress());
+                new ConnectAsync().execute(RemoteDroid.this.hostAdapter.getItem(position));
             }
         });
         final String[] longClickOptions = {"Delete", "Edit"};
@@ -96,16 +106,18 @@ public class RemoteDroid extends AppCompatActivity {
             public boolean onItemLongClick(AdapterView<?> parent, View view, final int position, long id) {
                 AlertDialog dialog = new AlertDialog.Builder(RemoteDroid.this).setItems(longClickOptions, new DialogInterface.OnClickListener() {
                     @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        Host h = hostAdapter.getItem(position);
+                    public void onClick(DialogInterface dialogInterface, int which) {
+                        Host h = RemoteDroid.this.hostAdapter.getItem(position);
                         switch (which) {
                             case 0:
-                                hostAdapter.remove(h);
+                                RemoteDroid.this.hostAdapter.remove(h);
                                 break;
                             case 1:
-                                Intent i = new Intent(RemoteDroid.this, EditHostActivity.class);
-                                i.putExtra(EditHostActivity.HOST, h);
-                                startActivityForResult(i, EDIT_HOST_REQUEST);
+                                Intent intent = new Intent(RemoteDroid.this, EditHostActivity.class);
+                                intent.putExtra(EditHostActivity.HOST, h);
+                                RemoteDroid.this.startActivityForResult(intent, RemoteDroid.EDIT_HOST_REQUEST);
+                                break;
+                            default:
                                 break;
                         }
                     }
@@ -119,12 +131,10 @@ public class RemoteDroid extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         // Write saved hosts
-        try {
-            ObjectOutputStream oos = new ObjectOutputStream(openFileOutput(SAVED_HOSTS_FILE, MODE_PRIVATE));
-            oos.writeObject(hosts);
-            oos.close();
+        try (ObjectOutputStream oos = new ObjectOutputStream(this.openFileOutput(RemoteDroid.SAVED_HOSTS_FILE, Context.MODE_PRIVATE))) {
+            oos.writeObject(this.hosts);
         } catch (IOException e) {
-            e.printStackTrace();
+            Log.d(RemoteDroid.TAG, "Unable to write to saved host file", e);
         }
 
         super.onDestroy();
@@ -132,12 +142,12 @@ public class RemoteDroid extends AppCompatActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == EDIT_HOST_REQUEST) {
-            if (resultCode == RESULT_OK) {
+        if (requestCode == RemoteDroid.EDIT_HOST_REQUEST) {
+            if (resultCode == Activity.RESULT_OK) {
                 Host host = (Host) data.getSerializableExtra(EditHostActivity.HOST);
-                hostAdapter.remove(host);
+                this.hostAdapter.remove(host);
                 Host editedHost = (Host) data.getSerializableExtra(EditHostActivity.EDITED_HOST);
-                hostAdapter.add(editedHost);
+                this.hostAdapter.add(editedHost);
             }
         } else {
             super.onActivityResult(requestCode, resultCode, data);
@@ -145,24 +155,21 @@ public class RemoteDroid extends AppCompatActivity {
     }
 
     /**
-     * Starts PadActivity with given InetAddress if it is reachable.
+     * Starts PadActivity with given Host if it is reachable.
      * If more than one address is given, only the first is used and the rest are ignored.
      */
-    private class ConnectAsync extends AsyncTask<InetAddress, Void, Boolean> {
-        private InetAddress addr;
-        private String hostName;
+    private class ConnectAsync extends AsyncTask<Host, Void, Boolean> {
+        private static final int DEFAULT_TIMEOUT = 500;
+        private Host host;
 
         @Override
-        protected Boolean doInBackground(InetAddress... params) {
-            addr = params[0];
+        protected Boolean doInBackground(Host... params) {
+            this.host = params[0];
 
             try {
-                if (addr.isReachable(500)) {
-                    hostName = addr.getHostName();
-                    return true;
-                }
+                return this.host.getAddress().isReachable(ConnectAsync.DEFAULT_TIMEOUT);
             } catch (IOException e) {
-                Log.d(TAG, "IOException when connecting to host", e);
+                Log.d(RemoteDroid.TAG, "IOException when connecting to host", e);
             }
 
             return false;
@@ -171,17 +178,17 @@ public class RemoteDroid extends AppCompatActivity {
         @Override
         protected void onPostExecute(Boolean reachable) {
             if (reachable) {
-                Host h = new Host(hostName, addr);
-                if (!hosts.contains(h)) {
-                    hostAdapter.add(h);
+                if (!RemoteDroid.this.hosts.contains(this.host)) {
+                    RemoteDroid.this.hostAdapter.add(this.host);
                 }
 
                 Intent i = new Intent(RemoteDroid.this, PadActivity.class);
-                i.putExtra(PadActivity.CONNECT_IP, addr);
+                i.putExtra(PadActivity.CONNECT_IP, this.host.getAddress());
                 RemoteDroid.this.startActivity(i);
             } else {
-                Toast.makeText(getParent(), "Unable to reach host", Toast.LENGTH_LONG).show();
+                Toast.makeText(RemoteDroid.this.getParent(), R.string.txt_ip_error, Toast.LENGTH_LONG).show();
             }
+            super.onPostExecute(reachable);
         }
     }
 

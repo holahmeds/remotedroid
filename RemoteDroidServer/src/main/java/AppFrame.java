@@ -23,7 +23,7 @@ import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 
 
-public class AppFrame extends JFrame {
+class AppFrame extends JFrame {
     /**
      *
      */
@@ -45,7 +45,13 @@ public class AppFrame extends JFrame {
         }
 
         String textLines = "<html>The RemoteDroid server application is now running.<br><br>Your IP address is: " + sHost + "<br><br>Enter this IP address on the start screen of the<br>RemoteDroid application on your phone to begin.</html>";
-        Image imLogo = getImage("icon.gif");
+        Image imLogo = null;
+        try {
+            InputStream inputStream = getClass().getResourceAsStream("icon.gif");
+            imLogo = ImageIO.read(inputStream);
+        } catch (IOException e2) {
+            e2.printStackTrace();
+        }
 
         JPanel contentPane = new JPanel();
         contentPane.setBorder(BORDER);
@@ -113,14 +119,4 @@ public class AppFrame extends JFrame {
         pack();
     }
 
-    public Image getImage(String sImage) {
-        Image imReturn = null;
-        try {
-            InputStream inputStream = getClass().getResourceAsStream(sImage);
-            imReturn = ImageIO.read(inputStream);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return imReturn;
-    }
 }

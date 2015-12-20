@@ -12,6 +12,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
 import com.illposed.osc.OSCMessage;
@@ -40,7 +41,7 @@ public class PadActivity extends AppCompatActivity {
 
     private OSCPortOut sender;
     // thread and graphics stuff
-    private Handler handler = new Handler();
+    private final Handler handler = new Handler();
     //
     private FrameLayout flLeftButton;
     private Runnable rLeftDown;
@@ -53,15 +54,12 @@ public class PadActivity extends AppCompatActivity {
     private float xHistory;
     private float yHistory;
     //
-    private int lastPointerCount = 0;
+    private int lastPointerCount;
 
     // tap to click
-    private long lastTap = 0;
-    private int tapState = TAP_NONE;
+    private long lastTap;
+    private int tapState = PadActivity.TAP_NONE;
     private Timer tapTimer;
-    // multitouch scroll
-    // private float scrollX = 0f;
-    private float scrollY = 0f;
 
     /**
      * Mouse sensitivity power
@@ -85,45 +83,51 @@ public class PadActivity extends AppCompatActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        this.prefs = PreferenceManager.getDefaultSharedPreferences(this);
 
         // UI runnables
         this.rLeftDown = new Runnable() {
+            @Override
             public void run() {
-                drawButtonOn(flLeftButton);
+                PadActivity.drawButtonOn(PadActivity.this.flLeftButton);
             }
         };
         this.rLeftUp = new Runnable() {
+            @Override
             public void run() {
-                drawButtonOff(flLeftButton);
+                PadActivity.drawButtonOff(PadActivity.this.flLeftButton);
             }
         };
         this.rRightDown = new Runnable() {
+            @Override
             public void run() {
-                drawButtonOn(flRightButton);
+                PadActivity.drawButtonOn(PadActivity.this.flRightButton);
             }
         };
         this.rRightUp = new Runnable() {
+            @Override
             public void run() {
-                drawButtonOff(flRightButton);
+                PadActivity.drawButtonOff(PadActivity.this.flRightButton);
             }
         };
 
         //
         try {
             //
-            setContentView(R.layout.pad_layout);
+            this.setContentView(R.layout.pad_layout);
             StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder().permitAll().build());
 
             this.sender = new OSCPortOut(
-                    (InetAddress) getIntent().getSerializableExtra(CONNECT_IP),
+                    (InetAddress) this.getIntent().getSerializableExtra(PadActivity.CONNECT_IP),
                     OSCPort.defaultSCOSCPort());
 
             this.initTouchpad();
             this.initLeftButton();
             this.initRightButton();
         } catch (Exception ex) {
-            Log.d(TAG, ex.toString(), ex);
+            if (BuildConfig.DEBUG) {
+                Log.d(PadActivity.TAG, ex.toString(), ex);
+            }
         }
     }
 
@@ -131,7 +135,7 @@ public class PadActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         super.onCreateOptionsMenu(menu);
 
-        getMenuInflater().inflate(R.menu.pad_menu, menu);
+        this.getMenuInflater().inflate(R.menu.pad_menu, menu);
 
         return true;
     }
@@ -140,7 +144,7 @@ public class PadActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.show_prefs:
-                startActivity(new Intent(this, PadPreferences.class));
+                this.startActivity(new Intent(this, PadPreferences.class));
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -151,15 +155,17 @@ public class PadActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         // Setup accelerations
-        mMouseSensitivityPower = 1
-                + Integer.parseInt(prefs.getString(PadPreferences.SENSITIVITY, "0")) / 100d;
-        mScrollStep = (sScrollStepMin - sScrollStepMax)
-                * (sScrollMaxSettingsValue - Integer.parseInt(prefs.getString(PadPreferences.SCROLL_SENSITIVITY, "50")))
-                / sScrollMaxSettingsValue
-                + sScrollStepMax;
+        this.mMouseSensitivityPower = 1.0
+                + (Integer.parseInt(this.prefs.getString(PadPreferences.SENSITIVITY, "0")) / 100d);
+        this.mScrollStep = (((PadActivity.sScrollStepMin - PadActivity.sScrollStepMax)
+                * (PadActivity.sScrollMaxSettingsValue - Integer.parseInt(this.prefs.getString(PadPreferences.SCROLL_SENSITIVITY, "50"))))
+                / PadActivity.sScrollMaxSettingsValue)
+                + PadActivity.sScrollStepMax;
 
-        Log.d(TAG, "mScrollStep=" + mScrollStep);
-        Log.d(TAG, "Settings.sensitivity=" + prefs.getString(PadPreferences.SENSITIVITY, "0"));
+        if (BuildConfig.DEBUG) {
+            Log.d(PadActivity.TAG, "mScrollStep=" + this.mScrollStep);
+            Log.d(PadActivity.TAG, "Settings.sensitivity=" + this.prefs.getString(PadPreferences.SENSITIVITY, "0"));
+        }
     }
 
     private void initTouchpad() {
@@ -167,20 +173,33 @@ public class PadActivity extends AppCompatActivity {
 
         // let's set up a touch listener
         fl.setOnTouchListener(new View.OnTouchListener() {
+            @Override
             public boolean onTouch(View v, MotionEvent ev) {
-                return onMouseMove(ev);
+                PadActivity.this.onMouseMove(ev);
+                return true;
             }
         });
     }
 
     private void initLeftButton() {
         FrameLayout fl = (FrameLayout) this.findViewById(R.id.flLeftButton);
-        android.view.ViewGroup.LayoutParams lp = fl.getLayoutParams();
+        ViewGroup.LayoutParams lp = fl.getLayoutParams();
         fl.setLayoutParams(lp);
         // listener
         fl.setOnTouchListener(new View.OnTouchListener() {
+            @Override
             public boolean onTouch(View v, MotionEvent ev) {
-                return onLeftTouch(ev);
+                switch (ev.getAction()) {
+                    case MotionEvent.ACTION_DOWN:
+                        PadActivity.this.leftButtonDown();
+                        break;
+                    case MotionEvent.ACTION_UP:
+                        PadActivity.this.leftButtonUp();
+                        break;
+                    default:
+                        break;
+                }
+                return true;
             }
         });
         this.flLeftButton = fl;
@@ -188,12 +207,23 @@ public class PadActivity extends AppCompatActivity {
 
     private void initRightButton() {
         FrameLayout iv = (FrameLayout) this.findViewById(R.id.flRightButton);
-        android.view.ViewGroup.LayoutParams lp = iv.getLayoutParams();
+        ViewGroup.LayoutParams lp = iv.getLayoutParams();
         iv.setLayoutParams(lp);
         // listener
         iv.setOnTouchListener(new View.OnTouchListener() {
+            @Override
             public boolean onTouch(View v, MotionEvent ev) {
-                return onRightTouch(ev);
+                switch (ev.getAction()) {
+                    case MotionEvent.ACTION_DOWN:
+                        PadActivity.this.rightButtonDown();
+                        break;
+                    case MotionEvent.ACTION_UP:
+                        PadActivity.this.rightButtonUp();
+                        break;
+                    default:
+                        break;
+                }
+                return true;
             }
         });
         this.flRightButton = iv;
@@ -205,35 +235,32 @@ public class PadActivity extends AppCompatActivity {
         this.sender.close();
     }
 
-    // mouse events
-    boolean scrollTag = false;
-    int scrollCount = 0;
-
-    private boolean onMouseMove(MotionEvent ev) {
+    private void onMouseMove(MotionEvent ev) {
         int type = 0;
         float xMove = 0f;
         float yMove = 0f;
 
         int pointerCount = ev.getPointerCount();
 
+        float scrollY = 0;
         switch (ev.getAction()) {
             case MotionEvent.ACTION_DOWN:
                 // scrollX = 0;
                 scrollY = 0;
                 //
-                if (prefs.getBoolean(PadPreferences.TAP_TO_CLICK, true)
+                if (this.prefs.getBoolean(PadPreferences.TAP_TO_CLICK, true)
                         && (pointerCount == 1)) {
-                    if (this.tapState == TAP_NONE) {
+                    if (this.tapState == PadActivity.TAP_NONE) {
                         // first tap
                         this.lastTap = System.currentTimeMillis();
                         //
-                    } else if (this.tapState == TAP_FIRST) {
+                    } else if (this.tapState == PadActivity.TAP_FIRST) {
                         // second tap - check if we've fired the button up
                         if (this.tapTimer != null) {
                             // up has not been fired
                             this.tapTimer.cancel();
                             this.tapTimer = null;
-                            this.tapState = TAP_SECOND;
+                            this.tapState = PadActivity.TAP_SECOND;
                             this.lastTap = System.currentTimeMillis();
                         }
                     }
@@ -248,27 +275,29 @@ public class PadActivity extends AppCompatActivity {
                 //
                 break;
             case MotionEvent.ACTION_UP:
-                if (prefs.getBoolean(PadPreferences.TAP_TO_CLICK, true)
+                if (this.prefs.getBoolean(PadPreferences.TAP_TO_CLICK, true)
                         && (pointerCount == 1)) {
                     // it's a tap!
                     long now = System.currentTimeMillis();
                     long elapsed = now - this.lastTap;
-                    if (elapsed <= Integer.parseInt(prefs.getString(PadPreferences.TAP_TIME, "200"))) {
-                        if (this.tapState == TAP_NONE) {
+                    if (elapsed <= Integer.parseInt(this.prefs.getString(PadPreferences.TAP_TIME, "200"))) {
+                        if (this.tapState == PadActivity.TAP_NONE) {
                             this.lastTap = now;
                             //
                             this.tapTimer = new Timer();
                             this.tapTimer.scheduleAtFixedRate(new TimerTask() {
+                                @Override
                                 public void run() {
-                                    firstTapUp();
+                                    PadActivity.this.firstTapUp();
                                 }
-                            }, 0, Integer.parseInt(prefs.getString(PadPreferences.TAP_TIME, "200")));
-                        } else if (this.tapState == TAP_SECOND) {
+                            }, 0, Integer.parseInt(this.prefs.getString(PadPreferences.TAP_TIME, "200")));
+                        } else if (this.tapState == PadActivity.TAP_SECOND) {
                             // double-click
                             this.tapTimer = new Timer();
                             this.tapTimer.scheduleAtFixedRate(new TimerTask() {
+                                @Override
                                 public void run() {
-                                    secondTapUp();
+                                    PadActivity.this.secondTapUp();
                                 }
                             }, 0, 10);
                         }
@@ -276,9 +305,9 @@ public class PadActivity extends AppCompatActivity {
                     } else {
                         // too long
                         this.lastTap = 0;
-                        if (this.tapState == TAP_SECOND) {
+                        if (this.tapState == PadActivity.TAP_SECOND) {
                             // release the button
-                            this.tapState = TAP_NONE;
+                            this.tapState = PadActivity.TAP_NONE;
                             this.lastTap = 0;
                             this.leftButtonUp();
                         }
@@ -290,13 +319,12 @@ public class PadActivity extends AppCompatActivity {
                 yMove = 0;
                 //scrollX= 0;
                 scrollY = 0;
-                scrollTag = false; //clear multi-touch event
                 break;
             case MotionEvent.ACTION_MOVE:
                 if (pointerCount == 1) {
                     // move
                     type = 2;
-                    if (lastPointerCount == 1) {
+                    if (this.lastPointerCount == 1) {
                         xMove = ev.getX() - this.xHistory;
                         yMove = ev.getY() - this.yHistory;
                     }
@@ -309,7 +337,7 @@ public class PadActivity extends AppCompatActivity {
                     float posY = ev.getY(0);
 
                     // only consider the second pointer if I had a previous history
-                    if (lastPointerCount == 2) {
+                    if (this.lastPointerCount == 2) {
                         posY += ev.getY(1);
                         posY /= 2;
 
@@ -336,48 +364,39 @@ public class PadActivity extends AppCompatActivity {
             // // can't deal with X scrolling yet
             // scrollX = 0f;
             // }
-            if (Math.abs(scrollY) > mScrollStep) {
-                if (scrollY > 0f) {
-                    dir = 1;
-                } else {
-                    dir = -1;
-                }
+            if (Math.abs(scrollY) > this.mScrollStep) {
+                dir = (scrollY > 0f) ? 1 : -1;
 
-                if (prefs.getBoolean(PadPreferences.SCROLL_INVERTED, false)) {
+                if (this.prefs.getBoolean(PadPreferences.SCROLL_INVERTED, false)) {
                     dir = -dir;
                 }
-
-                scrollY = 0f;
             }
-            if (scrollTag) scrollCount++;
-            else scrollCount = 0;
-            scrollTag = true; //flag multi touch state for next up event
-            if (dir != 0)
+            if (dir != 0) {
                 this.sendScrollEvent(dir); //lets only send scroll events if there is distance to scroll
+            }
         } else if (type == 2) {
             // if type is 0 or 1, the server will not do anything with it, so we
             // only send type 2 events
             this.sendMouseEvent(type, xMove, yMove);
         }
-        lastPointerCount = pointerCount;
-        return true;
+        this.lastPointerCount = pointerCount;
     }
 
     private void firstTapUp() {
-        if (this.tapState == TAP_NONE) {
+        if (this.tapState == PadActivity.TAP_NONE) {
             // single click
             // counts as a tap
-            this.tapState = TAP_FIRST;
+            this.tapState = PadActivity.TAP_FIRST;
             this.leftButtonDown();
-        } else if (this.tapState == TAP_FIRST) {
+        } else if (this.tapState == PadActivity.TAP_FIRST) {
             this.leftButtonUp();
-            this.tapState = TAP_NONE;
+            this.tapState = PadActivity.TAP_NONE;
             this.lastTap = 0;
             this.tapTimer.cancel();
             this.tapTimer = null;
-        } else if (this.tapState == TAP_RIGHT) {
+        } else if (this.tapState == PadActivity.TAP_RIGHT) {
             this.rightButtonUp();
-            this.tapState = TAP_NONE;
+            this.tapState = PadActivity.TAP_NONE;
             this.lastTap = 0;
             this.tapTimer.cancel();
             this.tapTimer = null;
@@ -385,17 +404,17 @@ public class PadActivity extends AppCompatActivity {
     }
 
     private void secondTapUp() {
-        if (this.tapState == TAP_SECOND) {
+        if (this.tapState == PadActivity.TAP_SECOND) {
             // mouse up
             this.leftButtonUp();
             this.lastTap = 0;
-            this.tapState = TAP_DOUBLE;
-        } else if (this.tapState == TAP_DOUBLE) {
+            this.tapState = PadActivity.TAP_DOUBLE;
+        } else if (this.tapState == PadActivity.TAP_DOUBLE) {
             this.leftButtonDown();
-            this.tapState = TAP_DOUBLE_FINISH;
-        } else if (this.tapState == TAP_DOUBLE_FINISH) {
+            this.tapState = PadActivity.TAP_DOUBLE_FINISH;
+        } else if (this.tapState == PadActivity.TAP_DOUBLE_FINISH) {
             this.leftButtonUp();
-            this.tapState = TAP_NONE;
+            this.tapState = PadActivity.TAP_NONE;
             this.tapTimer.cancel();
             this.tapTimer = null;
         }
@@ -405,20 +424,22 @@ public class PadActivity extends AppCompatActivity {
 
     private void sendMouseEvent(int type, float x, float y) {
 
-        int xDir = x >= 0 ? 1 : -1;
-        int yDir = y >= 0 ? 1 : -1;
+        int xDir = (x >= 0) ? 1 : -1;
+        int yDir = (y >= 0) ? 1 : -1;
 
         Object[] args = new Object[1];
-        args[0] = String.valueOf(type)
-                + ":" + String.valueOf(Math.pow(Math.abs(x), mMouseSensitivityPower) * xDir)
-                + ":" + String.valueOf(Math.pow(Math.abs(y), mMouseSensitivityPower) * yDir);
+        args[0] = type
+                + ":" + Math.pow(Math.abs(x), this.mMouseSensitivityPower) * xDir
+                + ':' + Math.pow(Math.abs(y), this.mMouseSensitivityPower) * yDir;
         // Log.d(TAG, String.valueOf(Settings.getSensitivity()));
         //
         OSCMessage msg = new OSCMessage("/mouse", Arrays.asList(args));
         try {
             this.sender.send(msg);
         } catch (Exception ex) {
-            Log.d(TAG, ex.toString(), ex);
+            if (BuildConfig.DEBUG) {
+                Log.d(PadActivity.TAG, ex.toString(), ex);
+            }
         }
     }
 
@@ -430,21 +451,10 @@ public class PadActivity extends AppCompatActivity {
         try {
             this.sender.send(msg);
         } catch (Exception ex) {
-            Log.d(TAG, ex.toString(), ex);
+            if (BuildConfig.DEBUG) {
+                Log.d(PadActivity.TAG, ex.toString(), ex);
+            }
         }
-    }
-
-    private boolean onLeftTouch(MotionEvent ev) {
-        switch (ev.getAction()) {
-            case MotionEvent.ACTION_DOWN:
-                this.leftButtonDown();
-                break;
-            case MotionEvent.ACTION_UP:
-                this.leftButtonUp();
-                break;
-        }
-        //
-        return true;
     }
 
     private void leftButtonDown() {
@@ -454,7 +464,9 @@ public class PadActivity extends AppCompatActivity {
         try {
             this.sender.send(msg);
         } catch (Exception ex) {
-            Log.d(TAG, ex.toString(), ex);
+            if (BuildConfig.DEBUG) {
+                Log.d(PadActivity.TAG, ex.toString(), ex);
+            }
         }
         // graphical feedback
         this.handler.post(this.rLeftDown);
@@ -467,23 +479,12 @@ public class PadActivity extends AppCompatActivity {
         try {
             this.sender.send(msg);
         } catch (Exception ex) {
-            Log.d(TAG, ex.toString(), ex);
+            if (BuildConfig.DEBUG) {
+                Log.d(PadActivity.TAG, ex.toString(), ex);
+            }
         }
         // graphical feedback
         this.handler.post(this.rLeftUp);
-    }
-
-    private boolean onRightTouch(MotionEvent ev) {
-        switch (ev.getAction()) {
-            case MotionEvent.ACTION_DOWN:
-                this.rightButtonDown();
-                break;
-            case MotionEvent.ACTION_UP:
-                this.rightButtonUp();
-                break;
-        }
-        //
-        return true;
     }
 
     private void rightButtonDown() {
@@ -493,7 +494,9 @@ public class PadActivity extends AppCompatActivity {
         try {
             this.sender.send(msg);
         } catch (Exception ex) {
-            Log.d(TAG, ex.toString(), ex);
+            if (BuildConfig.DEBUG) {
+                Log.d(PadActivity.TAG, ex.toString(), ex);
+            }
         }
         // graphical feedback
         this.handler.post(this.rRightDown);
@@ -506,17 +509,19 @@ public class PadActivity extends AppCompatActivity {
         try {
             this.sender.send(msg);
         } catch (Exception ex) {
-            Log.d(TAG, ex.toString(), ex);
+            if (BuildConfig.DEBUG) {
+                Log.d(PadActivity.TAG, ex.toString(), ex);
+            }
         }
         // graphical feedback
         this.handler.post(this.rRightUp);
     }
 
-    private void drawButtonOn(FrameLayout fl) {
+    private static void drawButtonOn(FrameLayout fl) {
         fl.setBackgroundResource(R.drawable.left_button_on);
     }
 
-    private void drawButtonOff(FrameLayout fl) {
+    private static void drawButtonOff(FrameLayout fl) {
         fl.setBackgroundResource(R.drawable.left_button_off);
     }
 
