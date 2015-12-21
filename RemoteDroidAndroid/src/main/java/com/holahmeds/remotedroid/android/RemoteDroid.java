@@ -1,4 +1,4 @@
-package com.joshsera;
+package com.holahmeds.remotedroid.android;
 
 import android.app.Activity;
 import android.app.AlertDialog;

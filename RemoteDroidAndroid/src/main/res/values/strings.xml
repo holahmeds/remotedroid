@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">RemoteDroid</string>
+    <string name="app_name">Remote Droid</string>
 
     <string name="txt_ip_error">Server not found</string>
     <string name="toast_invalidIP">Invalid IP address!</string>

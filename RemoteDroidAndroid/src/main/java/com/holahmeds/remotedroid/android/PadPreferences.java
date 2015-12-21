@@ -1,4 +1,4 @@
-package com.joshsera;
+package com.holahmeds.remotedroid.android;
 
 import android.os.Bundle;
 import android.preference.PreferenceActivity;

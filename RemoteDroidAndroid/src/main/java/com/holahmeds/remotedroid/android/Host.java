@@ -1,4 +1,4 @@
-package com.joshsera;
+package com.holahmeds.remotedroid.android;
 
 import java.io.Serializable;
 import java.net.InetAddress;

@@ -1,3 +1,5 @@
+package com.holahmeds.remotedroid;
+
 import java.awt.AWTException;
 import java.net.SocketException;
 

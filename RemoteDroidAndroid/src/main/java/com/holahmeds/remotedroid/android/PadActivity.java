@@ -1,4 +1,4 @@
-package com.joshsera;
+package com.holahmeds.remotedroid.android;
 
 import android.content.Intent;
 import android.content.SharedPreferences;

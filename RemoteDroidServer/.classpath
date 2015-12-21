@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<classpath>
-	<classpathentry kind="output" path="bin"/>
-	<classpathentry kind="src" path="src/main/java"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER" exported="true"/>
-	<classpathentry kind="src" path="src/main/resources"/>
-	<classpathentry sourcepath="/home/ahmed/.gradle/caches/modules-2/files-2.1/com.illposed.osc/javaosc-core/0.3/d30e26ac729355395eb761e1f2cf56b5adf53bb8/javaosc-core-0.3-sources.jar" kind="lib" path="/home/ahmed/.gradle/caches/modules-2/files-2.1/com.illposed.osc/javaosc-core/0.3/402113b186d24378e2362f9e5ff8dfe72a2195ee/javaosc-core-0.3.jar" exported="true"/>
-</classpath>
